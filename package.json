@@ -1,0 +1,16 @@
+{
+	"name": "private-chat",
+	"private": true,
+	"packageManager": "pnpm@9.15.4",
+	"scripts": {
+		"lint": "biome check .",
+		"format": "biome format --write .",
+		"test": "pnpm -r test",
+		"build": "pnpm --filter @private-chat/shared run build && pnpm --filter @private-chat/server run build && pnpm --filter @private-chat/web run build"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

@@ -3,4 +3,8 @@
 pre-commit:
   commands:
     osv-scanner:
-      run: osv-scanner scan -r --format=vertical --verbosity=error --allow-no-lockfiles .
+      run: osv-scanner scan -r --format=vertical --verbosity=error .
+    biome:
+      run: pnpm exec biome check .
+    test:
+      run: pnpm test
