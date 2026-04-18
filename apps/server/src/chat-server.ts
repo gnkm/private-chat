@@ -26,7 +26,7 @@ function sendWsError(ws: WebSocket, message: string): void {
 
 /**
  * Express（ヘルスチェック）と `ws` の単一会話ルームサーバを同一プロセスで起動する。
- * メモリに投稿を保持するが、新規 WebSocket 接続には履歴を再送しない。
+ * 投稿本文はサーバに蓄積しない（検証後にブロードキャストのみ）。新規接続には過去ログを送らない。
  */
 export function createChatServer(): ChatServer {
 	const app = express();
@@ -36,8 +36,6 @@ export function createChatServer(): ChatServer {
 
 	const httpServer = http.createServer(app);
 	const clients = new Set<WebSocket>();
-	/** プロセス内ストア（SRS-FUNC-005〜006）。履歴の再送には使わない。 */
-	const messageStore: ServerBroadcastPost[] = [];
 
 	const wss = new WebSocketServer({ server: httpServer, path: WS_PATH });
 
@@ -91,7 +89,6 @@ export function createChatServer(): ChatServer {
 		}
 
 		const broadcast = validated.data;
-		messageStore.push(broadcast);
 
 		const payload = JSON.stringify(broadcast);
 		for (const client of clients) {
