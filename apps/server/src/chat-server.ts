@@ -13,6 +13,9 @@ import {
 /** WebSocket パス（同一オリジンからの接続先） */
 export const WS_PATH = "/ws";
 
+/** Close ハンドシェイクが完了しない接続を `terminate` するまでの待機（ミリ秒） */
+const WS_CLOSE_GRACE_MS = 5_000;
+
 export type ChatServer = {
 	readonly httpServer: http.Server;
 	readonly close: () => Promise<void>;
@@ -22,6 +25,20 @@ function sendWsError(ws: WebSocket, message: string): void {
 	if (ws.readyState === WebSocket.OPEN) {
 		ws.send(JSON.stringify({ type: "error", message }));
 	}
+}
+
+/** `close()` の応答がないソケットを時間切れで強制終了する。返り値でタイマーを解除する。 */
+function scheduleForceTerminate(clients: WebSocket[]): () => void {
+	const timer = setTimeout(() => {
+		for (const client of clients) {
+			if (client.readyState !== WebSocket.CLOSED) {
+				client.terminate();
+			}
+		}
+	}, WS_CLOSE_GRACE_MS);
+	return () => {
+		clearTimeout(timer);
+	};
 }
 
 /**
@@ -102,10 +119,13 @@ export function createChatServer(): ChatServer {
 		httpServer,
 		close: () =>
 			new Promise<void>((resolve, reject) => {
-				for (const client of [...clients]) {
+				const snapshot = [...clients];
+				for (const client of snapshot) {
 					client.close();
 				}
+				const cancelForceTerminate = scheduleForceTerminate(snapshot);
 				wss.close((wssErr) => {
+					cancelForceTerminate();
 					if (wssErr) {
 						reject(wssErr);
 						return;
