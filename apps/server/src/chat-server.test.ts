@@ -21,6 +21,32 @@ function toWs(baseUrl: string): string {
 	return `${baseUrl.replace(/^http/, "ws")}${WS_PATH}`;
 }
 
+/** 指定ミリ秒の間に 1 件でも `message` 来たら即失敗。負荷下の遅延に合わせ窓はやや長め。 */
+function expectNoMessageDuring(
+	ws: WebSocket,
+	quietWindowMs: number,
+): Promise<void> {
+	return new Promise((resolve, reject) => {
+		const onMessage = () => {
+			cleanup();
+			reject(
+				new Error(
+					"unexpected WebSocket message during quiet period (history must not replay)",
+				),
+			);
+		};
+		const timer = setTimeout(() => {
+			cleanup();
+			resolve();
+		}, quietWindowMs);
+		function cleanup(): void {
+			clearTimeout(timer);
+			ws.off("message", onMessage);
+		}
+		ws.on("message", onMessage);
+	});
+}
+
 describe("createChatServer (フェーズ2)", () => {
 	let chat: ReturnType<typeof createChatServer>;
 	let baseUrl: string;
@@ -109,12 +135,7 @@ describe("createChatServer (フェーズ2)", () => {
 			w2.once("error", reject);
 		});
 
-		let w2Received = false;
-		w2.on("message", () => {
-			w2Received = true;
-		});
-		await new Promise<void>((resolve) => setTimeout(resolve, 200));
-		expect(w2Received).toBe(false);
+		await expectNoMessageDuring(w2, 500);
 
 		const nextOnW2 = new Promise<string>((resolve, reject) => {
 			w2.once("message", (data) => resolve(data.toString()));
