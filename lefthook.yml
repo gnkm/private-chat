@@ -5,6 +5,6 @@ pre-commit:
     osv-scanner:
       run: osv-scanner scan -r --format=vertical --verbosity=error .
     biome:
-      run: pnpm exec biome check .
+      run: pnpm exec biome check --staged --no-errors-on-unmatched
     test:
       run: pnpm test
