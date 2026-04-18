@@ -15,11 +15,9 @@ export const clientPostPayloadSchema = z
 
 export type ClientPostPayload = z.infer<typeof clientPostPayloadSchema>;
 
-const iso8601DateTimeSchema = z
-	.string()
-	.refine((value) => !Number.isNaN(Date.parse(value)), {
-		message: "sentAt must be a parseable ISO 8601 date-time string",
-	});
+const iso8601DateTimeSchema = z.string().datetime({
+	message: "sentAt must be a parseable ISO 8601 date-time string",
+});
 
 /**
  * サーバ → クライアント（ブロードキャストの完成形）。architecture §7.2。

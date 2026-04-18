@@ -113,6 +113,14 @@ describe("serverBroadcastPostSchema", () => {
 		expect(result.success).toBe(false);
 	});
 
+	it("rejects non-ISO date strings that Date.parse might accept", () => {
+		for (const sentAt of ["January 1, 2024", "4/18/2024", "2024-01-01"]) {
+			expect(
+				serverBroadcastPostSchema.safeParse({ ...valid, sentAt }).success,
+			).toBe(false);
+		}
+	});
+
 	it("rejects body violating shared body rules", () => {
 		const result = serverBroadcastPostSchema.safeParse({
 			...valid,
