@@ -1,8 +1,9 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vitest/config";
+import { defineConfig } from "vite";
 
 const repoRoot = path.resolve(
 	path.dirname(fileURLToPath(import.meta.url)),
@@ -10,7 +11,7 @@ const repoRoot = path.resolve(
 );
 
 export default defineConfig({
-	plugins: [react()],
+	plugins: [react(), tailwindcss()],
 	resolve: {
 		alias: {
 			"@private-chat/shared": path.join(
@@ -19,11 +20,7 @@ export default defineConfig({
 			),
 		},
 	},
-	test: {
-		name: "web",
-		environment: "jsdom",
-		setupFiles: ["./src/test/setup.ts"],
-		include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
-		execArgv: ["--no-webstorage"],
+	server: {
+		port: 5173,
 	},
 });
