@@ -77,6 +77,8 @@ export function useChat(options: UseChatOptions = {}) {
 		}
 	}, [displayName, draftBody]);
 
+	const clearSendError = useCallback(() => setSendError(null), []);
+
 	return {
 		posts,
 		displayName,
@@ -85,6 +87,6 @@ export function useChat(options: UseChatOptions = {}) {
 		setDraftBody,
 		updateDisplayName,
 		sendMessage,
-		clearSendError: () => setSendError(null),
+		clearSendError,
 	};
 }
