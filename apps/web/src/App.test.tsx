@@ -123,6 +123,7 @@ describe("ChatApp (フェーズ3)", () => {
 				dispose: vi.fn(),
 				sendPost: () => {
 					callbacks.onSendError("オフラインです");
+					return false;
 				},
 			};
 			return stub as unknown as ChatSocket;
@@ -140,5 +141,6 @@ describe("ChatApp (フェーズ3)", () => {
 
 		await user.type(screen.getByLabelText("メッセージ入力"), "x{Enter}");
 		expect(screen.getByRole("alert")).toHaveTextContent("オフラインです");
+		expect(screen.getByLabelText("メッセージ入力")).toHaveValue("x");
 	});
 });

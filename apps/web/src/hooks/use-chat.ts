@@ -72,8 +72,9 @@ export function useChat(options: UseChatOptions = {}) {
 			displayName,
 			body: draftBody,
 		};
-		socketRef.current?.sendPost(payload);
-		setDraftBody("");
+		if (socketRef.current?.sendPost(payload)) {
+			setDraftBody("");
+		}
 	}, [displayName, draftBody]);
 
 	return {

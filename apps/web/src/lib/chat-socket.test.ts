@@ -76,7 +76,7 @@ describe("ChatSocket (SRS-IF-001, SRS-IF-003)", () => {
 		socket.connect();
 		await vi.waitFor(() => expect(getLastController()?.readyState).toBe(1));
 
-		socket.sendPost({ displayName: "A", body: "" });
+		expect(socket.sendPost({ displayName: "A", body: "" })).toBe(false);
 		expect(getLastController()?.sent).toHaveLength(0);
 		socket.dispose();
 	});

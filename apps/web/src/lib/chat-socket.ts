@@ -47,20 +47,22 @@ export class ChatSocket {
 		}
 	}
 
-	sendPost(payload: ClientPostPayload): void {
+	/** 送信できた場合のみ `true`（未接続・検証失敗時は `false`） */
+	sendPost(payload: ClientPostPayload): boolean {
 		const validated = clientPostPayloadSchema.safeParse(payload);
 		if (!validated.success) {
-			return;
+			return false;
 		}
 
 		if (this.ws?.readyState !== WebSocket.OPEN) {
 			this.callbacks.onSendError(
 				"サーバに接続できていません。しばらくしてから再度お試しください。",
 			);
-			return;
+			return false;
 		}
 
 		this.ws.send(JSON.stringify(validated.data));
+		return true;
 	}
 
 	private openSocket(): void {
