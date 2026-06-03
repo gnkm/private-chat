@@ -2,6 +2,16 @@ import type { ServerBroadcastPost } from "@private-chat/shared";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 import { formatSentAt } from "../lib/format-sent-at.js";
+import { isOwnPost } from "../lib/post-alignment.js";
+import {
+	getPostAuthorNameClassName,
+	getPostBubbleBodyClassName,
+	getPostBubbleRowClassName,
+	getPostBubbleTailClassName,
+	getPostMessageColumnClassName,
+	getPostMetaClassName,
+	getPostSentAtClassName,
+} from "../lib/post-bubble.js";
 import {
 	isNearScrollBottom,
 	scrollElementToBottom,
@@ -14,9 +24,10 @@ export const JUMP_TO_LATEST_LABEL = "新着へ";
 
 type PostListProps = {
 	posts: ServerBroadcastPost[];
+	currentDisplayName?: string;
 };
 
-export function PostList({ posts }: PostListProps) {
+export function PostList({ posts, currentDisplayName = "" }: PostListProps) {
 	const scrollRef = useRef<HTMLElement>(null);
 	const stickToBottomRef = useRef(true);
 	const [showJumpToLatest, setShowJumpToLatest] = useState(false);
@@ -84,24 +95,48 @@ export function PostList({ posts }: PostListProps) {
 					</div>
 				) : (
 					<ul className="flex flex-col gap-3">
-						{posts.map((post) => (
-							<li
-								key={post.id}
-								className="rounded-lg border border-stone-200 bg-white px-3 py-2 shadow-sm dark:border-stone-600 dark:bg-stone-800 dark:shadow-none"
-							>
-								<div className="flex items-baseline justify-between gap-2 text-xs text-stone-500 dark:text-stone-500">
-									<span className="font-semibold text-stone-800 dark:text-stone-300">
-										{post.displayName}
-									</span>
-									<time dateTime={post.sentAt}>
-										{formatSentAt(post.sentAt)}
-									</time>
-								</div>
-								<p className="mt-1 whitespace-pre-wrap text-sm text-stone-900 dark:text-stone-300">
-									{post.body}
-								</p>
-							</li>
-						))}
+						{posts.map((post) => {
+							const own = isOwnPost(post.displayName, currentDisplayName);
+							return (
+								<li
+									key={post.id}
+									className={`flex w-full ${own ? "justify-end" : "justify-start"}`}
+								>
+									<article className={getPostMessageColumnClassName(own)}>
+										<div className={getPostMetaClassName(own)}>
+											<span className={getPostAuthorNameClassName()}>
+												{post.displayName}
+											</span>
+											<time
+												className={getPostSentAtClassName()}
+												dateTime={post.sentAt}
+											>
+												{formatSentAt(post.sentAt)}
+											</time>
+										</div>
+										<div className={getPostBubbleRowClassName(own)}>
+											{own ? null : (
+												<span
+													className={getPostBubbleTailClassName(false)}
+													aria-hidden
+												/>
+											)}
+											<div className={getPostBubbleBodyClassName(own)}>
+												<p className="whitespace-pre-wrap text-sm text-stone-900 dark:text-stone-300">
+													{post.body}
+												</p>
+											</div>
+											{own ? (
+												<span
+													className={getPostBubbleTailClassName(true)}
+													aria-hidden
+												/>
+											) : null}
+										</div>
+									</article>
+								</li>
+							);
+						})}
 					</ul>
 				)}
 			</section>
