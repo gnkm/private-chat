@@ -2,6 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { withNavigatorPlatform } from "../test/stub-navigator-platform.js";
 import { MessageComposer } from "./MessageComposer.js";
 
 describe("MessageComposer", () => {
@@ -26,48 +27,32 @@ describe("MessageComposer", () => {
 	it("sends on Ctrl+Enter on non-Mac", async () => {
 		const user = userEvent.setup();
 		const onSend = vi.fn();
-		const original = navigator.platform;
-		Object.defineProperty(navigator, "platform", {
-			configurable: true,
-			value: "Win32",
-		});
 
-		render(
-			<MessageComposer body="hello" onBodyChange={vi.fn()} onSend={onSend} />,
-		);
+		await withNavigatorPlatform("Win32", async () => {
+			render(
+				<MessageComposer body="hello" onBodyChange={vi.fn()} onSend={onSend} />,
+			);
 
-		await user.click(screen.getByLabelText("メッセージ入力"));
-		await user.keyboard("{Control>}{Enter}{/Control}");
+			await user.click(screen.getByLabelText("メッセージ入力"));
+			await user.keyboard("{Control>}{Enter}{/Control}");
 
-		expect(onSend).toHaveBeenCalledTimes(1);
-
-		Object.defineProperty(navigator, "platform", {
-			configurable: true,
-			value: original,
+			expect(onSend).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	it("sends on Meta+Enter on Mac", async () => {
 		const user = userEvent.setup();
 		const onSend = vi.fn();
-		const original = navigator.platform;
-		Object.defineProperty(navigator, "platform", {
-			configurable: true,
-			value: "MacIntel",
-		});
 
-		render(
-			<MessageComposer body="hello" onBodyChange={vi.fn()} onSend={onSend} />,
-		);
+		await withNavigatorPlatform("MacIntel", async () => {
+			render(
+				<MessageComposer body="hello" onBodyChange={vi.fn()} onSend={onSend} />,
+			);
 
-		await user.click(screen.getByLabelText("メッセージ入力"));
-		await user.keyboard("{Meta>}{Enter}{/Meta}");
+			await user.click(screen.getByLabelText("メッセージ入力"));
+			await user.keyboard("{Meta>}{Enter}{/Meta}");
 
-		expect(onSend).toHaveBeenCalledTimes(1);
-
-		Object.defineProperty(navigator, "platform", {
-			configurable: true,
-			value: original,
+			expect(onSend).toHaveBeenCalledTimes(1);
 		});
 	});
 });

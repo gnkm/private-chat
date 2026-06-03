@@ -7,6 +7,7 @@ import { ChatApp } from "./components/ChatApp.js";
 import type { ChatSocket } from "./lib/chat-socket.js";
 import { DISPLAY_NAME_STORAGE_KEY } from "./lib/display-name.js";
 import { createFakeWebSocketClass } from "./lib/fake-websocket.js";
+import { withNavigatorPlatform } from "./test/stub-navigator-platform.js";
 
 describe("ChatApp (フェーズ3)", () => {
 	const { FakeWebSocket, getLastController } = createFakeWebSocketClass();
@@ -97,27 +98,19 @@ describe("ChatApp (フェーズ3)", () => {
 
 	it("sends post on Ctrl+Enter with display name and body", async () => {
 		const user = userEvent.setup();
-		const original = navigator.platform;
-		Object.defineProperty(navigator, "platform", {
-			configurable: true,
-			value: "Win32",
-		});
 
-		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
-		await waitFor(() => expect(getLastController()?.readyState).toBe(1));
+		await withNavigatorPlatform("Win32", async () => {
+			render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
+			await waitFor(() => expect(getLastController()?.readyState).toBe(1));
 
-		await user.type(screen.getByLabelText("表示名"), "Alice");
-		await user.click(screen.getByLabelText("メッセージ入力"));
-		await user.type(screen.getByLabelText("メッセージ入力"), "hello");
-		await user.keyboard("{Control>}{Enter}{/Control}");
+			await user.type(screen.getByLabelText("表示名"), "Alice");
+			await user.click(screen.getByLabelText("メッセージ入力"));
+			await user.type(screen.getByLabelText("メッセージ入力"), "hello");
+			await user.keyboard("{Control>}{Enter}{/Control}");
 
-		expect(getLastController()?.sent).toEqual([
-			JSON.stringify({ displayName: "Alice", body: "hello" }),
-		]);
-
-		Object.defineProperty(navigator, "platform", {
-			configurable: true,
-			value: original,
+			expect(getLastController()?.sent).toEqual([
+				JSON.stringify({ displayName: "Alice", body: "hello" }),
+			]);
 		});
 	});
 
