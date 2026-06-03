@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatSentAt, formatSentAtDate } from "./format-sent-at.js";
+import { formatSentAt } from "./format-sent-at.js";
 
 const ISO_SAMPLE = "2026-04-18T12:00:00.000Z";
 
@@ -20,11 +20,5 @@ describe("formatSentAt", () => {
 
 	it("returns original string when date is invalid", () => {
 		expect(formatSentAt("not-a-date")).toBe("not-a-date");
-	});
-});
-
-describe("formatSentAtDate", () => {
-	it("matches formatSentAt", () => {
-		expect(formatSentAtDate(ISO_SAMPLE)).toBe(formatSentAt(ISO_SAMPLE));
 	});
 });

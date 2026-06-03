@@ -15,8 +15,3 @@ export function formatSentAt(iso: string): string {
 	}
 	return formatDateTimeLocal(date);
 }
-
-/** 一覧表示用の投稿日時（吹き出し外メタ情報） */
-export function formatSentAtDate(iso: string): string {
-	return formatSentAt(iso);
-}

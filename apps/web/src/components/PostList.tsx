@@ -1,7 +1,7 @@
 import type { ServerBroadcastPost } from "@private-chat/shared";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
-import { formatSentAtDate } from "../lib/format-sent-at.js";
+import { formatSentAt } from "../lib/format-sent-at.js";
 import { isOwnPost } from "../lib/post-alignment.js";
 import {
 	getPostAuthorNameClassName,
@@ -111,7 +111,7 @@ export function PostList({ posts, currentDisplayName = "" }: PostListProps) {
 												className={getPostSentAtClassName()}
 												dateTime={post.sentAt}
 											>
-												{formatSentAtDate(post.sentAt)}
+												{formatSentAt(post.sentAt)}
 											</time>
 										</div>
 										<div className={getPostBubbleRowClassName(own)}>
