@@ -25,7 +25,11 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		server: {
+			host: true,
 			port: 5173,
+			...(env.VITE_DEV_USE_POLLING === "true"
+				? { watch: { usePolling: true } }
+				: {}),
 			proxy: {
 				"/ws": {
 					target: apiTarget,

@@ -1,0 +1,26 @@
+# 開発: podman compose -f compose.dev.yaml up --build -d
+# 停止: podman compose -f compose.dev.yaml down
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Containerfile.dev
+    image: private-chat:dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - dev_root_node_modules:/app/node_modules
+      - dev_server_node_modules:/app/apps/server/node_modules
+      - dev_web_node_modules:/app/apps/web/node_modules
+      - dev_shared_node_modules:/app/packages/shared/node_modules
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      VITE_DEV_USE_POLLING: "true"
+
+volumes:
+  dev_root_node_modules:
+  dev_server_node_modules:
+  dev_web_node_modules:
+  dev_shared_node_modules:
