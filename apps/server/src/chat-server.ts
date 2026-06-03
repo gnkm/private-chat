@@ -6,12 +6,19 @@ import { type RawData, WebSocket, WebSocketServer } from "ws";
 
 import {
 	type Participant,
+	type ReactionEmoji,
+	type ReactionRoster,
 	type ServerBroadcastPost,
 	type ServerParticipantsFrame,
+	type ServerReactionsFrame,
 	clientInboundMessageSchema,
+	isReactionMessage,
 	isSetDisplayNameMessage,
+	reactionCountsFromRoster,
 	serverBroadcastPostSchema,
 	serverParticipantsFrameSchema,
+	serverReactionsFrameSchema,
+	toggleReactionOnRoster,
 } from "@private-chat/shared";
 
 import { mountStaticSpa } from "./static-files.js";
@@ -99,6 +106,7 @@ export function createChatServer(
 
 	const httpServer = http.createServer(app);
 	const roster = new Map<WebSocket, ClientRecord>();
+	const reactionsByPostId = new Map<string, ReactionRoster>();
 
 	const wss = new WebSocketServer({ server: httpServer, path: WS_PATH });
 
@@ -133,6 +141,46 @@ export function createChatServer(
 		const trimmed = displayName.trim();
 		record.displayName = trimmed.length > 0 ? trimmed : null;
 		broadcastParticipants();
+	}
+
+	function broadcastReactions(
+		postId: string,
+		rosterForPost: ReactionRoster,
+	): void {
+		const frame: ServerReactionsFrame = {
+			type: "reactions",
+			postId,
+			reactions: reactionCountsFromRoster(rosterForPost),
+		};
+		const validated = serverReactionsFrameSchema.safeParse(frame);
+		if (!validated.success) {
+			return;
+		}
+		const payload = JSON.stringify(validated.data);
+		for (const client of roster.keys()) {
+			if (client.readyState === WebSocket.OPEN) {
+				client.send(payload);
+			}
+		}
+	}
+
+	function handleReaction(
+		_ws: WebSocket,
+		data: { postId: string; emoji: ReactionEmoji; displayName: string },
+	): void {
+		const trimmedName = data.displayName.trim();
+		if (trimmedName.length === 0) {
+			return;
+		}
+
+		const current = reactionsByPostId.get(data.postId) ?? new Map();
+		const next = toggleReactionOnRoster(current, data.emoji, trimmedName);
+		if (next.size === 0) {
+			reactionsByPostId.delete(data.postId);
+		} else {
+			reactionsByPostId.set(data.postId, next);
+		}
+		broadcastReactions(data.postId, next);
 	}
 
 	function handlePost(
@@ -203,6 +251,11 @@ export function createChatServer(
 
 		if (isSetDisplayNameMessage(result.data)) {
 			handleSetDisplayName(ws, result.data.displayName);
+			return;
+		}
+
+		if (isReactionMessage(result.data)) {
+			handleReaction(ws, result.data);
 			return;
 		}
 

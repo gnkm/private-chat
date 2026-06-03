@@ -1,6 +1,7 @@
 import type {
 	ClientPostPayload,
 	Participant,
+	ReactionEmoji,
 	ServerBroadcastPost,
 } from "@private-chat/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -11,6 +12,11 @@ import {
 	isDisplayNameBlank,
 } from "../lib/display-name-validation.js";
 import { loadDisplayName, saveDisplayName } from "../lib/display-name.js";
+import {
+	type ReactionsByPostId,
+	applyReactionsFrame,
+	toggleMyReaction,
+} from "../lib/reactions.js";
 import { resolveWebSocketUrl } from "../lib/ws-url.js";
 
 export type { ChatSocketCallbacks };
@@ -22,6 +28,12 @@ export type UseChatOptions = {
 
 export function useChat(options: UseChatOptions = {}) {
 	const [posts, setPosts] = useState<ServerBroadcastPost[]>([]);
+	const [reactionsByPostId, setReactionsByPostId] = useState<ReactionsByPostId>(
+		{},
+	);
+	const [myReactionsByPostId, setMyReactionsByPostId] = useState<
+		Record<string, Set<ReactionEmoji>>
+	>({});
 	const [participants, setParticipants] = useState<Participant[]>([]);
 	const [displayName, setDisplayName] = useState(() => loadDisplayName());
 	const [draftBody, setDraftBody] = useState("");
@@ -39,41 +51,30 @@ export function useChat(options: UseChatOptions = {}) {
 	}, []);
 
 	useEffect(() => {
+		const socketCallbacks: ChatSocketCallbacks = {
+			onPost: (post) => {
+				setPosts((prev) => [...prev, post]);
+			},
+			onReactions: (frame) => {
+				setReactionsByPostId((prev) => applyReactionsFrame(prev, frame));
+			},
+			onSendError: (message) => {
+				setSendError(message);
+			},
+			onParticipants: (next) => {
+				setParticipants(next);
+			},
+			onOpen: () => {
+				const stored = loadDisplayName();
+				if (!isDisplayNameBlank(stored)) {
+					announceDisplayName(stored);
+				}
+			},
+		};
+
 		const socket =
-			createSocketRef.current?.(wsUrl, {
-				onPost: (post) => {
-					setPosts((prev) => [...prev, post]);
-				},
-				onSendError: (message) => {
-					setSendError(message);
-				},
-				onParticipants: (next) => {
-					setParticipants(next);
-				},
-				onOpen: () => {
-					const stored = loadDisplayName();
-					if (!isDisplayNameBlank(stored)) {
-						announceDisplayName(stored);
-					}
-				},
-			}) ??
-			new ChatSocket(wsUrl, {
-				onPost: (post) => {
-					setPosts((prev) => [...prev, post]);
-				},
-				onSendError: (message) => {
-					setSendError(message);
-				},
-				onParticipants: (next) => {
-					setParticipants(next);
-				},
-				onOpen: () => {
-					const stored = loadDisplayName();
-					if (!isDisplayNameBlank(stored)) {
-						announceDisplayName(stored);
-					}
-				},
-			});
+			createSocketRef.current?.(wsUrl, socketCallbacks) ??
+			new ChatSocket(wsUrl, socketCallbacks);
 
 		socketRef.current = socket;
 		socket.connect();
@@ -115,8 +116,27 @@ export function useChat(options: UseChatOptions = {}) {
 
 	const clearSendError = useCallback(() => setSendError(null), []);
 
+	const toggleReaction = useCallback(
+		(postId: string, emoji: ReactionEmoji) => {
+			if (isDisplayNameBlank(displayName)) {
+				setSendError(DISPLAY_NAME_REQUIRED_ERROR);
+				return;
+			}
+			setSendError(null);
+			setMyReactionsByPostId((prev) => {
+				const current = prev[postId] ?? new Set<ReactionEmoji>();
+				return { ...prev, [postId]: toggleMyReaction(current, emoji) };
+			});
+			socketRef.current?.sendReaction(postId, emoji, displayName);
+		},
+		[displayName],
+	);
+
 	return {
 		posts,
+		reactionsByPostId,
+		myReactionsByPostId,
+		toggleReaction,
 		participants,
 		displayName,
 		draftBody,

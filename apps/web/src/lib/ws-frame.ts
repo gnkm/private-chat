@@ -1,8 +1,10 @@
 import {
 	type Participant,
 	type ServerBroadcastPost,
+	type ServerReactionsFrame,
 	serverBroadcastPostSchema,
 	serverParticipantsFrameSchema,
+	serverReactionsFrameSchema,
 } from "@private-chat/shared";
 import { z } from "zod";
 
@@ -16,6 +18,7 @@ const serverErrorFrameSchema = z
 export type ParsedWsFrame =
 	| { kind: "post"; post: ServerBroadcastPost }
 	| { kind: "participants"; participants: Participant[] }
+	| { kind: "reactions"; frame: ServerReactionsFrame }
 	| { kind: "error"; message: string }
 	| { kind: "invalid" };
 
@@ -33,6 +36,11 @@ export function parseWsFrame(raw: string): ParsedWsFrame {
 			kind: "participants",
 			participants: participantsResult.data.participants,
 		};
+	}
+
+	const reactionsResult = serverReactionsFrameSchema.safeParse(parsed);
+	if (reactionsResult.success) {
+		return { kind: "reactions", frame: reactionsResult.data };
 	}
 
 	const postResult = serverBroadcastPostSchema.safeParse(parsed);

@@ -7,7 +7,7 @@ import {
 	within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ServerBroadcastPost } from "@private-chat/shared";
 import {
@@ -105,6 +105,24 @@ describe("PostList", () => {
 		expect(
 			container.querySelector(".post-bubble-tail--other"),
 		).toBeInTheDocument();
+	});
+
+	it("renders reaction controls for each post", () => {
+		render(
+			<PostList
+				posts={[samplePost]}
+				reactionsByPostId={{
+					"1": [{ emoji: "🙏", count: 3 }],
+				}}
+				myReactionsByPostId={{ "1": new Set(["🙏"]) }}
+				onToggleReaction={vi.fn()}
+			/>,
+		);
+
+		expect(
+			screen.getByRole("group", { name: "リアクション" }),
+		).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "🙏 3" })).toBeInTheDocument();
 	});
 
 	it("aligns all posts to the left when display name is blank", () => {

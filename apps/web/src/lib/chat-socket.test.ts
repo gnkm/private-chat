@@ -5,11 +5,13 @@ import type { FakeWebSocketController } from "./fake-websocket.js";
 import { createFakeWebSocketClass } from "./fake-websocket.js";
 
 const noopParticipants = vi.fn();
+const noopReactions = vi.fn();
 const noopOpen = vi.fn();
 
 function socketCallbacks(
 	overrides: Partial<{
 		onPost: ReturnType<typeof vi.fn>;
+		onReactions: ReturnType<typeof vi.fn>;
 		onSendError: ReturnType<typeof vi.fn>;
 		onParticipants: ReturnType<typeof vi.fn>;
 		onOpen: ReturnType<typeof vi.fn>;
@@ -17,6 +19,7 @@ function socketCallbacks(
 ) {
 	return {
 		onPost: vi.fn(),
+		onReactions: noopReactions,
 		onSendError: vi.fn(),
 		onParticipants: noopParticipants,
 		onOpen: noopOpen,

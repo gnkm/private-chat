@@ -33,6 +33,22 @@ describe("parseWsFrame", () => {
 		});
 	});
 
+	it("parses reactions frame", () => {
+		const raw = JSON.stringify({
+			type: "reactions",
+			postId: "p1",
+			reactions: [{ emoji: "👍", count: 3 }],
+		});
+		expect(parseWsFrame(raw)).toEqual({
+			kind: "reactions",
+			frame: {
+				type: "reactions",
+				postId: "p1",
+				reactions: [{ emoji: "👍", count: 3 }],
+			},
+		});
+	});
+
 	it("parses server error frames (SRS-IF-003)", () => {
 		const raw = JSON.stringify({ type: "error", message: "body is required" });
 		expect(parseWsFrame(raw)).toEqual({

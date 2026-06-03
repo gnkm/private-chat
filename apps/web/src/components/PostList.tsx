@@ -1,4 +1,4 @@
-import type { ServerBroadcastPost } from "@private-chat/shared";
+import type { ReactionEmoji, ServerBroadcastPost } from "@private-chat/shared";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 import { formatSentAt } from "../lib/format-sent-at.js";
@@ -16,6 +16,8 @@ import {
 	isNearScrollBottom,
 	scrollElementToBottom,
 } from "../lib/post-list-scroll.js";
+import type { ReactionsByPostId } from "../lib/reactions.js";
+import { PostReactions } from "./PostReactions.js";
 
 export const POST_LIST_EMPTY_HEADING = "ここにメッセージが表示されます";
 export const POST_LIST_EMPTY_DESCRIPTION =
@@ -25,9 +27,18 @@ export const JUMP_TO_LATEST_LABEL = "新着へ";
 type PostListProps = {
 	posts: ServerBroadcastPost[];
 	currentDisplayName?: string;
+	reactionsByPostId?: ReactionsByPostId;
+	myReactionsByPostId?: Record<string, ReadonlySet<ReactionEmoji>>;
+	onToggleReaction?: (postId: string, emoji: ReactionEmoji) => void;
 };
 
-export function PostList({ posts, currentDisplayName = "" }: PostListProps) {
+export function PostList({
+	posts,
+	currentDisplayName = "",
+	reactionsByPostId = {},
+	myReactionsByPostId = {},
+	onToggleReaction = () => {},
+}: PostListProps) {
 	const scrollRef = useRef<HTMLElement>(null);
 	const stickToBottomRef = useRef(true);
 	const [showJumpToLatest, setShowJumpToLatest] = useState(false);
@@ -133,6 +144,13 @@ export function PostList({ posts, currentDisplayName = "" }: PostListProps) {
 												/>
 											) : null}
 										</div>
+										<PostReactions
+											postId={post.id}
+											reactions={reactionsByPostId[post.id]}
+											myReactions={myReactionsByPostId[post.id] ?? new Set()}
+											ownPost={own}
+											onToggle={onToggleReaction}
+										/>
 									</article>
 								</li>
 							);
