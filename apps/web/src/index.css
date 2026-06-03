@@ -57,7 +57,7 @@ body {
 	height: 0;
 	margin-right: -1px;
 	border-style: solid;
-	border-width: 10px 17px 10px 0;
+	border-width: 6px 17px 6px 0;
 	border-color: transparent var(--post-bubble-bg) transparent transparent;
 }
 
@@ -67,6 +67,6 @@ body {
 	height: 0;
 	margin-left: -1px;
 	border-style: solid;
-	border-width: 10px 0 10px 17px;
+	border-width: 6px 0 6px 17px;
 	border-color: transparent transparent transparent var(--post-bubble-bg);
 }
