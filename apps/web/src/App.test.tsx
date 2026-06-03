@@ -33,6 +33,14 @@ describe("ChatApp (フェーズ3)", () => {
 		expect(screen.getByLabelText("メッセージ入力")).toBeInTheDocument();
 	});
 
+	it("shows empty state when there are no posts", () => {
+		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
+
+		expect(
+			screen.getByText("ここにメッセージが表示されます"),
+		).toBeInTheDocument();
+	});
+
 	it("persists display name in localStorage (SRS-UI-004)", async () => {
 		const user = userEvent.setup();
 		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
