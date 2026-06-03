@@ -66,3 +66,53 @@ body {
 	border-width: 6px 0 6px 17px;
 	border-color: transparent transparent transparent var(--post-bubble-bg);
 }
+
+/* 投稿内コードブロック（Shiki dual theme） */
+.post-body > * + * {
+	margin-top: 0.5rem;
+}
+
+.post-code-block {
+	overflow-x: auto;
+	border-radius: 0.375rem;
+	font-size: 0.8125rem;
+	line-height: 1.5;
+}
+
+.post-code-block--fallback {
+	margin: 0;
+	padding: 0.75rem;
+	background-color: #f5f5f4; /* stone-100 */
+	color: #292524; /* stone-800 */
+}
+
+.dark .post-code-block--fallback {
+	background-color: #292524; /* stone-800 */
+	color: #d6d3d1; /* stone-300 */
+}
+
+.post-code-block .shiki {
+	margin: 0;
+	padding: 0.75rem;
+	border-radius: 0.375rem;
+	overflow-x: auto;
+}
+
+/* Shiki dual theme: ライトはデフォルト、ダークは html.dark で切替 */
+.post-code-block .shiki,
+.post-code-block .shiki span {
+	color: var(--shiki-light);
+	background-color: var(--shiki-light-bg);
+	font-style: var(--shiki-light-font-style);
+	font-weight: var(--shiki-light-font-weight);
+	text-decoration: var(--shiki-light-text-decoration);
+}
+
+html.dark .post-code-block .shiki,
+html.dark .post-code-block .shiki span {
+	color: var(--shiki-dark) !important;
+	background-color: var(--shiki-dark-bg) !important;
+	font-style: var(--shiki-dark-font-style) !important;
+	font-weight: var(--shiki-dark-font-weight) !important;
+	text-decoration: var(--shiki-dark-text-decoration) !important;
+}
