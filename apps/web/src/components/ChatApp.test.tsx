@@ -55,6 +55,24 @@ describe("ChatApp responsive sidebar", () => {
 		).not.toBeInTheDocument();
 	});
 
+	it("keeps theme toggle in chat pane when sidebar is collapsed", async () => {
+		const user = userEvent.setup();
+		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
+
+		await user.click(
+			screen.getByRole("button", { name: "サイドバーを閉じる" }),
+		);
+
+		const sidebar = screen.getByLabelText("サイドバー");
+		const chatPane = screen.getByLabelText("チャット");
+		expect(
+			within(sidebar).queryByRole("button", { name: /モードに切り替え/ }),
+		).not.toBeInTheDocument();
+		expect(
+			within(chatPane).getByRole("button", { name: "ダークモードに切り替え" }),
+		).toBeVisible();
+	});
+
 	it("expands sidebar when toggle is clicked again", async () => {
 		const user = userEvent.setup();
 		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
