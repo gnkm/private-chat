@@ -90,6 +90,21 @@ describe("ChatSocket (SRS-IF-001, SRS-IF-003)", () => {
 		socket.dispose();
 	});
 
+	it("invokes onSendError when sendReaction is called while disconnected", () => {
+		const onSendError = vi.fn();
+		const socket = new ChatSocket(
+			"ws://test/ws",
+			socketCallbacks({ onSendError }),
+			() => new FakeWebSocket("ws://test/ws"),
+		);
+
+		expect(socket.sendReaction("post-1", "👍", "Alice")).toBe(false);
+		expect(onSendError).toHaveBeenCalledWith(
+			"サーバに接続できていません。しばらくしてから再度お試しください。",
+		);
+		socket.dispose();
+	});
+
 	it("does not send empty body (SRS-FUNC-001)", async () => {
 		const socket = new ChatSocket(
 			"ws://test/ws",

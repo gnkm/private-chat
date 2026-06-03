@@ -93,6 +93,9 @@ export class ChatSocket {
 		}
 
 		if (this.ws?.readyState !== WebSocket.OPEN) {
+			this.callbacks.onSendError(
+				"サーバに接続できていません。しばらくしてから再度お試しください。",
+			);
 			return false;
 		}
 
