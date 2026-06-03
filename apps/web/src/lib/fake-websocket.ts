@@ -30,6 +30,7 @@ export function createFakeWebSocketClass(): {
 		readonly url: string;
 		readonly sent: string[] = [];
 		readyState = FakeWebSocket.CONNECTING;
+		private readonly controller: FakeWebSocketController;
 
 		binaryType: BinaryType = "blob";
 		bufferedAmount = 0;
@@ -43,7 +44,7 @@ export function createFakeWebSocketClass(): {
 
 		constructor(url: string) {
 			this.url = url;
-			const controller: FakeWebSocketController = {
+			this.controller = {
 				url,
 				sent: this.sent,
 				readyState: this.readyState,
@@ -52,17 +53,13 @@ export function createFakeWebSocketClass(): {
 						new MessageEvent("message", { data }) as MessageEvent,
 					);
 				},
-				simulateClose: () => {
-					this.readyState = FakeWebSocket.CLOSED;
-					controller.readyState = this.readyState;
-					this.onclose?.(new CloseEvent("close") as CloseEvent);
-				},
+				simulateClose: () => this.simulateCloseInternal(),
 			};
-			lastController = controller;
+			lastController = this.controller;
 
 			queueMicrotask(() => {
 				this.readyState = FakeWebSocket.OPEN;
-				controller.readyState = this.readyState;
+				this.controller.readyState = this.readyState;
 				this.onopen?.(new Event("open") as Event);
 			});
 		}
@@ -80,9 +77,7 @@ export function createFakeWebSocketClass(): {
 				return;
 			}
 			this.readyState = FakeWebSocket.CLOSED;
-			if (lastController?.url === this.url) {
-				lastController.readyState = this.readyState;
-			}
+			this.controller.readyState = this.readyState;
 			this.onclose?.(new CloseEvent("close") as CloseEvent);
 		}
 
