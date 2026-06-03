@@ -47,16 +47,25 @@ async function getHighlighterCache(): Promise<HighlighterCache> {
 	const configKey = getConfigKey(config);
 
 	if (highlighterCache) {
-		const cached = await highlighterCache;
-		if (cached.configKey === configKey) {
-			return cached;
+		try {
+			const cached = await highlighterCache;
+			if (cached.configKey === configKey) {
+				return cached;
+			}
+		} catch {
+			highlighterCache = undefined;
 		}
 	}
 
-	highlighterCache = createHighlighter({
+	const promise = createHighlighter({
 		themes: [config.shiki.light, config.shiki.dark],
 		langs: [...PRELOADED_LANGS, FALLBACK_LANG],
 	}).then((highlighter) => ({ configKey, highlighter }));
+
+	highlighterCache = promise.catch((error) => {
+		highlighterCache = undefined;
+		throw error;
+	});
 
 	return highlighterCache;
 }

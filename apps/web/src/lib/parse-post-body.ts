@@ -13,7 +13,9 @@ export type PostBodyCodeSegment = {
 
 export type PostBodySegment = PostBodyTextSegment | PostBodyCodeSegment;
 
-const FENCED_CODE_BLOCK = /```([^\n`]*)\n([\s\S]*?)```/g;
+// 閉じフェンスは行全体が ``` のみの行に限定する（CommonMark に近い）。
+// コード行内の ``` は含められる。行単独の ``` 行は閉じと誤認する（既知の制限）。
+const FENCED_CODE_BLOCK = /```([^\n`]*)\n([\s\S]*?)\n```[ \t]*(?:\n|$)/g;
 
 export function parsePostBody(body: string): PostBodySegment[] {
 	if (!body.includes("```")) {
@@ -41,7 +43,7 @@ export function parsePostBody(body: string): PostBodySegment[] {
 		segments.push({
 			type: "code",
 			language,
-			content: codeContent.replace(/\n$/, ""),
+			content: codeContent,
 			key: `code-${matchIndex}`,
 		});
 

@@ -1,6 +1,7 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { highlightCode } from "../lib/shiki-highlighter.js";
 import { PostBody } from "./PostBody.js";
 
 vi.mock("../lib/shiki-highlighter.js", () => ({
@@ -43,6 +44,20 @@ describe("PostBody", () => {
 			"data-lang",
 			"javascript",
 		);
+	});
+
+	it("keeps fallback display when highlighting fails", async () => {
+		vi.mocked(highlightCode).mockRejectedValueOnce(new Error("shiki failed"));
+
+		render(<PostBody body={"```javascript\nconst x = 1\n```"} />);
+
+		expect(screen.getByText("const x = 1")).toBeInTheDocument();
+		await waitFor(() => {
+			expect(
+				document.querySelector(".post-code-block--fallback"),
+			).toBeInTheDocument();
+		});
+		expect(document.querySelector(".post-code-block .shiki")).toBeNull();
 	});
 
 	it("renders text and code segments in order", async () => {

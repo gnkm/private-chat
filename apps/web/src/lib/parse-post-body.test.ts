@@ -20,7 +20,7 @@ describe("parsePostBody", () => {
 				content: 'console.log("hi")',
 				key: "code-7",
 			},
-			{ type: "text", content: "\nafter", key: "text-42" },
+			{ type: "text", content: "after", key: "text-43" },
 		]);
 	});
 
@@ -38,7 +38,7 @@ describe("parsePostBody", () => {
 	it("parses multiple code blocks", () => {
 		expect(parsePostBody("```js\na\n```\nmid\n```py\nb\n```")).toEqual([
 			{ type: "code", language: "js", content: "a", key: "code-0" },
-			{ type: "text", content: "\nmid\n", key: "text-11" },
+			{ type: "text", content: "mid\n", key: "text-12" },
 			{ type: "code", language: "py", content: "b", key: "code-16" },
 		]);
 	});
@@ -59,6 +59,17 @@ describe("parsePostBody", () => {
 				type: "code",
 				language: null,
 				content: "line1\n\nline3",
+				key: "code-0",
+			},
+		]);
+	});
+
+	it("does not treat inline triple backticks as closing fence", () => {
+		expect(parsePostBody("```\nsome ``` code\n```")).toEqual([
+			{
+				type: "code",
+				language: null,
+				content: "some ``` code",
 				key: "code-0",
 			},
 		]);

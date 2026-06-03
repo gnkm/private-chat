@@ -18,11 +18,15 @@ function PostCodeBlock({ code, language }: PostCodeBlockProps) {
 	useEffect(() => {
 		let cancelled = false;
 
-		void highlightCode(code, language).then((highlighted) => {
-			if (!cancelled) {
-				setHtml(highlighted);
-			}
-		});
+		void highlightCode(code, language)
+			.then((highlighted) => {
+				if (!cancelled) {
+					setHtml(highlighted);
+				}
+			})
+			.catch(() => {
+				// ハイライト失敗時はフォールバック表示のまま継続
+			});
 
 		return () => {
 			cancelled = true;
