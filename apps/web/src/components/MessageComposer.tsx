@@ -31,7 +31,7 @@ export function MessageComposer({
 	const codePointCount = countUnicodeCodePoints(body);
 	const counterText = formatMessageBodyCounter(codePointCount);
 	const remainingCodePoints = MESSAGE_BODY_MAX_CODE_POINTS - codePointCount;
-	const canSend = body.length > 0;
+	const canSend = codePointCount > 0;
 
 	const handleBodyChange = (value: string) => {
 		onBodyChange(truncateToMaxCodePoints(value));
