@@ -25,10 +25,13 @@ export default defineConfig({
 		setupFiles: ["./src/test/setup.ts"],
 		include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
 		execArgv: ["--no-webstorage"],
-		// GHA: 既定の fork 大量並列は OOM/EPIPE になる。並列数だけ抑える。
-		// threads プールは execArgv（--no-webstorage）を Worker に渡せず ERR_WORKER_INVALID_EXEC_ARGV になる
+		// GHA: 複数 fork + jsdom は OOM で Worker exited になる。1 プロセスに集約する。
+		// threads は execArgv（--no-webstorage）非対応（ERR_WORKER_INVALID_EXEC_ARGV）
 		...(process.env.CI
-			? { pool: "forks", maxWorkers: 4, fileParallelism: true }
+			? {
+					pool: "forks",
+					poolOptions: { forks: { singleFork: true } },
+				}
 			: {}),
 	},
 });
