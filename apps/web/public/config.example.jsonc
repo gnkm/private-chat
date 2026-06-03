@@ -1,0 +1,13 @@
+{
+	// Shiki シンタックスハイライトのテーマ設定
+	// 利用可能なテーマ一覧: https://shiki.style/themes
+	//
+	// 使い方:
+	// 1. このファイルを config.jsonc にコピーする
+	// 2. light / dark を好みのテーマ名に変更する
+	// 3. 開発サーバまたは本番コンテナを再起動する（ブラウザを再読み込み）
+	"shiki": {
+		"light": "github-light",
+		"dark": "github-dark"
+	}
+}

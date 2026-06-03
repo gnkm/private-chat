@@ -17,6 +17,7 @@ import {
 	scrollElementToBottom,
 } from "../lib/post-list-scroll.js";
 import type { ReactionsByPostId } from "../lib/reactions.js";
+import { PostBody } from "./PostBody.js";
 import { PostReactions } from "./PostReactions.js";
 
 export const POST_LIST_EMPTY_HEADING = "ここにメッセージが表示されます";
@@ -133,9 +134,7 @@ export function PostList({
 												/>
 											)}
 											<div className={getPostBubbleBodyClassName(own)}>
-												<p className="whitespace-pre-wrap text-sm text-stone-900 dark:text-stone-300">
-													{post.body}
-												</p>
+												<PostBody body={post.body} />
 											</div>
 											{own ? (
 												<span

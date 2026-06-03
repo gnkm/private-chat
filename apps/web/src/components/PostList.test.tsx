@@ -16,6 +16,12 @@ import {
 	PostList,
 } from "./PostList.js";
 
+vi.mock("../lib/shiki-highlighter.js", () => ({
+	highlightCode: vi.fn(
+		async (code: string) => `<pre class="shiki">${code}</pre>`,
+	),
+}));
+
 const samplePost: ServerBroadcastPost = {
 	id: "1",
 	displayName: "Alice",
@@ -65,6 +71,26 @@ describe("PostList", () => {
 		expect(screen.queryByText(POST_LIST_EMPTY_HEADING)).not.toBeInTheDocument();
 		expect(screen.getByRole("list")).toBeInTheDocument();
 		expect(screen.getByText("hello")).toBeInTheDocument();
+	});
+
+	it("renders fenced code blocks inside post bubbles", async () => {
+		render(
+			<PostList
+				posts={[
+					{
+						...samplePost,
+						body: "```javascript\nconst x = 1\n```",
+					},
+				]}
+			/>,
+		);
+
+		expect(screen.getByText("const x = 1")).toBeInTheDocument();
+		await waitFor(() => {
+			expect(
+				document.querySelector(".post-code-block .shiki"),
+			).toBeInTheDocument();
+		});
 	});
 
 	it("shows display name and sent date outside the bubble body", () => {

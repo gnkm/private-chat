@@ -21,4 +21,4 @@ COPY apps/web apps/web
 
 EXPOSE 5173 3000
 
-CMD ["pnpm", "dev"]
+CMD ["sh", "-c", "pnpm install --frozen-lockfile && pnpm dev"]
