@@ -2,9 +2,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { createChatServer } from "./chat-server.js";
+import { parseListenPort } from "./parse-port.js";
 import { resolveStaticDirForStart } from "./resolve-static-dir.js";
-
-const DEFAULT_PORT = 3000;
 
 const defaultStaticDir = path.resolve(
 	path.dirname(fileURLToPath(import.meta.url)),
@@ -14,7 +13,14 @@ const staticDir = resolveStaticDirForStart(
 	process.env.STATIC_DIR ?? defaultStaticDir,
 );
 
-const port = Number(process.env.PORT ?? DEFAULT_PORT);
+let port: number;
+try {
+	port = parseListenPort(process.env.PORT);
+} catch (error) {
+	console.error(error instanceof Error ? error.message : error);
+	process.exit(1);
+}
+
 const chat = createChatServer(staticDir ? { staticDir } : {});
 
 chat.httpServer.listen(port, () => {
