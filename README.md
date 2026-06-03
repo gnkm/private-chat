@@ -42,6 +42,42 @@ podman compose up -d
 
 停止: `podman compose down`
 
+## 設定（`config.jsonc`）
+
+投稿内コードブロックの Shiki シンタックスハイライトテーマを、Git 管理外のファイルで変更できます。
+
+### 初回セットアップ
+
+```bash
+cp apps/web/public/config.example.jsonc apps/web/public/config.jsonc
+```
+
+`config.jsonc` は `.gitignore` 対象です。リポジトリにはテンプレートの `config.example.jsonc` のみ含まれます。
+
+### 設定例
+
+JSONC 形式（`//` コメント可）で、ライト／ダークそれぞれの Shiki テーマ名を指定します。
+
+```jsonc
+{
+	"shiki": {
+		"light": "github-light",
+		"dark": "github-dark"
+	}
+}
+```
+
+利用可能なテーマ一覧は [Shiki Themes](https://shiki.style/themes) を参照してください。
+
+### 反映方法
+
+| 環境 | 手順 |
+|------|------|
+| 開発 | `apps/web/public/config.jsonc` を編集し、ブラウザを再読み込み |
+| 本番 | ビルド前に `config.jsonc` を用意する。変更後は `podman compose up --build -d` で再ビルド |
+
+ファイルが存在しない、または形式が不正な場合は `github-light` / `github-dark` が使われます。
+
 ## ポート番号
 
 ### 開発（`compose.dev.yaml`）
