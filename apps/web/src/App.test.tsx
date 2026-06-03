@@ -1,4 +1,10 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+	cleanup,
+	render,
+	screen,
+	waitFor,
+	within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -7,6 +13,7 @@ import { ChatApp } from "./components/ChatApp.js";
 import type { ChatSocket } from "./lib/chat-socket.js";
 import { DISPLAY_NAME_STORAGE_KEY } from "./lib/display-name.js";
 import { createFakeWebSocketClass } from "./lib/fake-websocket.js";
+import { typeDisplayName } from "./test/open-display-name-field.js";
 import { withNavigatorPlatform } from "./test/stub-navigator-platform.js";
 
 describe("ChatApp (フェーズ3)", () => {
@@ -25,8 +32,12 @@ describe("ChatApp (フェーズ3)", () => {
 
 	it("shows Slack-like layout with sidebar and main area (SRS-UI-001)", () => {
 		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
+		const sidebar = screen.getByLabelText("サイドバー");
 		expect(
-			screen.getByRole("heading", { name: "Private Chat" }),
+			within(sidebar).getByRole("heading", { name: "Private Chat" }),
+		).toBeInTheDocument();
+		expect(
+			within(sidebar).getByRole("button", { name: "サイドバーを閉じる" }),
 		).toBeInTheDocument();
 		expect(screen.getByLabelText("表示名")).toBeInTheDocument();
 		expect(screen.getByLabelText("投稿一覧")).toBeInTheDocument();
@@ -124,7 +135,7 @@ describe("ChatApp (フェーズ3)", () => {
 		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
 		await waitFor(() => expect(getLastController()?.readyState).toBe(1));
 
-		await user.type(screen.getByLabelText("表示名"), "   ");
+		await typeDisplayName(user, "   ");
 		await user.type(screen.getByLabelText("メッセージ入力"), "hello");
 		await user.keyboard("{Control>}{Enter}{/Control}");
 
@@ -150,7 +161,7 @@ describe("ChatApp (フェーズ3)", () => {
 		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
 		await waitFor(() => expect(getLastController()?.readyState).toBe(1));
 
-		await user.type(screen.getByLabelText("表示名"), "Alice");
+		await typeDisplayName(user, "Alice");
 		await user.type(screen.getByLabelText("メッセージ入力"), "hello{Enter}");
 
 		expect(getLastController()?.sent).toHaveLength(0);
@@ -161,7 +172,7 @@ describe("ChatApp (フェーズ3)", () => {
 		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
 		await waitFor(() => expect(getLastController()?.readyState).toBe(1));
 
-		await user.type(screen.getByLabelText("表示名"), "Alice");
+		await typeDisplayName(user, "Alice");
 		await user.type(screen.getByLabelText("メッセージ入力"), "hello");
 		await user.click(screen.getByRole("button", { name: "送信" }));
 
@@ -177,7 +188,7 @@ describe("ChatApp (フェーズ3)", () => {
 			render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
 			await waitFor(() => expect(getLastController()?.readyState).toBe(1));
 
-			await user.type(screen.getByLabelText("表示名"), "Alice");
+			await typeDisplayName(user, "Alice");
 			await user.click(screen.getByLabelText("メッセージ入力"));
 			await user.type(screen.getByLabelText("メッセージ入力"), "hello");
 			await user.keyboard("{Control>}{Enter}{/Control}");
@@ -228,7 +239,7 @@ describe("ChatApp (フェーズ3)", () => {
 			/>,
 		);
 
-		await user.type(screen.getByLabelText("表示名"), "Alice");
+		await typeDisplayName(user, "Alice");
 		await user.click(screen.getByLabelText("メッセージ入力"));
 		await user.type(screen.getByLabelText("メッセージ入力"), "x");
 		await user.keyboard("{Control>}{Enter}{/Control}");
