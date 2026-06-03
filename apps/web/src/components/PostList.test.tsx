@@ -66,6 +66,40 @@ describe("PostList", () => {
 		expect(screen.getByText("hello")).toBeInTheDocument();
 	});
 
+	it("aligns own posts to the right and others to the left", () => {
+		render(
+			<PostList posts={[samplePost, secondPost]} currentDisplayName="Alice" />,
+		);
+
+		const items = screen.getAllByRole("listitem");
+		expect(items[0]).toHaveClass("justify-end");
+		expect(items[1]).toHaveClass("justify-start");
+	});
+
+	it("renders rounded body with a horizontal tail on the outer side", () => {
+		const { container } = render(
+			<PostList posts={[samplePost, secondPost]} currentDisplayName="Alice" />,
+		);
+
+		expect(container.querySelector(".post-bubble-body")).toHaveClass(
+			"rounded-2xl",
+		);
+		expect(
+			container.querySelector(".post-bubble-tail--own"),
+		).toBeInTheDocument();
+		expect(
+			container.querySelector(".post-bubble-tail--other"),
+		).toBeInTheDocument();
+	});
+
+	it("aligns all posts to the left when display name is blank", () => {
+		render(<PostList posts={[samplePost, secondPost]} currentDisplayName="" />);
+
+		for (const item of screen.getAllByRole("listitem")) {
+			expect(item).toHaveClass("justify-start");
+		}
+	});
+
 	it("scrolls to bottom when near bottom and a new post is added", async () => {
 		const { rerender } = render(<PostList posts={[samplePost]} />);
 		const section = screen.getByLabelText("投稿一覧");

@@ -96,7 +96,7 @@ export function ChatApp({ chatOptions }: ChatAppProps = {}) {
 							<ErrorBanner message={sendError} onDismiss={clearSendError} />
 						</div>
 					) : null}
-					<PostList posts={posts} />
+					<PostList posts={posts} currentDisplayName={displayName} />
 					<div className="shrink-0">
 						<MessageComposer
 							body={draftBody}

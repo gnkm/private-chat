@@ -18,3 +18,55 @@ body {
 .dark {
 	color-scheme: dark;
 }
+
+/* チャット吹き出し（角丸本体 + 横方向の細い三角） */
+.post-bubble-row--other {
+	--post-bubble-bg: #ffffff;
+}
+
+.dark .post-bubble-row--other {
+	--post-bubble-bg: #44403c; /* stone-700 */
+}
+
+.post-bubble-row--own {
+	--post-bubble-bg: #e7e5e4; /* stone-200 */
+}
+
+.dark .post-bubble-row--own {
+	/* 他人より明るく（stone-600 > stone-700） */
+	--post-bubble-bg: #57534e; /* stone-600 */
+}
+
+.post-bubble-body {
+	background-color: var(--post-bubble-bg);
+}
+
+.dark .post-bubble-body--other {
+	border: 1px solid #57534e; /* stone-600 */
+}
+
+/* 角丸（rounded-2xl）の下端付近に合わせる */
+.post-bubble-tail--other,
+.post-bubble-tail--own {
+	margin-bottom: 10px;
+}
+
+/* 左向き（他人のメッセージ・本体の左隣） */
+.post-bubble-tail--other {
+	width: 0;
+	height: 0;
+	margin-right: -1px;
+	border-style: solid;
+	border-width: 10px 17px 10px 0;
+	border-color: transparent var(--post-bubble-bg) transparent transparent;
+}
+
+/* 右向き（自分のメッセージ・本体の右隣） */
+.post-bubble-tail--own {
+	width: 0;
+	height: 0;
+	margin-left: -1px;
+	border-style: solid;
+	border-width: 10px 0 10px 17px;
+	border-color: transparent transparent transparent var(--post-bubble-bg);
+}
