@@ -25,5 +25,7 @@ export default defineConfig({
 		setupFiles: ["./src/test/setup.ts"],
 		include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
 		execArgv: ["--no-webstorage"],
+		// GHA では fork プールの大量並列で Worker が OOM / EPIPE になるため直列化
+		...(process.env.CI ? { maxWorkers: 1, fileParallelism: false } : {}),
 	},
 });
