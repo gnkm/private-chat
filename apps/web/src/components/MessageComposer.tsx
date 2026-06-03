@@ -38,10 +38,10 @@ export function MessageComposer({
 	};
 
 	return (
-		<div className="border-t border-slate-200 bg-white p-4">
+		<div className="border-t border-stone-200 bg-white p-4">
 			<div className="flex items-end gap-2">
 				<textarea
-					className="min-h-24 min-w-0 flex-1 resize-y rounded border border-slate-300 px-3 py-2 text-sm text-slate-900"
+					className="min-h-24 min-w-0 flex-1 resize-y rounded border border-stone-300 px-3 py-2 text-sm text-stone-900"
 					placeholder={MESSAGE_PLACEHOLDER}
 					value={body}
 					onChange={(e) => handleBodyChange(e.target.value)}
@@ -64,7 +64,7 @@ export function MessageComposer({
 				/>
 				<button
 					type="button"
-					className="shrink-0 rounded bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
+					className="shrink-0 rounded bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-500"
 					disabled={!canSend}
 					onClick={onSend}
 				>
@@ -72,7 +72,7 @@ export function MessageComposer({
 				</button>
 			</div>
 			<div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-				<p id="message-composer-hint" className="text-xs text-slate-500">
+				<p id="message-composer-hint" className="text-xs text-stone-500">
 					{composerHint}
 				</p>
 				<p
@@ -80,7 +80,7 @@ export function MessageComposer({
 					className={`text-xs tabular-nums ${
 						remainingCodePoints <= MESSAGE_BODY_NEAR_LIMIT_REMAINING
 							? "text-amber-700"
-							: "text-slate-500"
+							: "text-stone-500"
 					}`}
 					aria-live="polite"
 				>
