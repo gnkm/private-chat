@@ -1,9 +1,13 @@
 import {
 	type ClientPostPayload,
+	type ClientReactionPayload,
 	type ClientSetDisplayNamePayload,
 	type Participant,
+	type ReactionEmoji,
 	type ServerBroadcastPost,
+	type ServerReactionsFrame,
 	clientPostPayloadSchema,
+	clientReactionPayloadSchema,
 	clientSetDisplayNameSchema,
 } from "@private-chat/shared";
 
@@ -12,6 +16,7 @@ import { computeReconnectDelayMs } from "./ws-reconnect.js";
 
 export type ChatSocketCallbacks = {
 	onPost: (post: ServerBroadcastPost) => void;
+	onReactions: (frame: ServerReactionsFrame) => void;
 	onSendError: (message: string) => void;
 	onParticipants: (participants: Participant[]) => void;
 	onOpen: () => void;
@@ -70,6 +75,34 @@ export class ChatSocket {
 		return true;
 	}
 
+	/** リアクションのトグルを送信 */
+	sendReaction(
+		postId: string,
+		emoji: ReactionEmoji,
+		displayName: string,
+	): boolean {
+		const payload: ClientReactionPayload = {
+			type: "reaction",
+			postId,
+			emoji,
+			displayName,
+		};
+		const validated = clientReactionPayloadSchema.safeParse(payload);
+		if (!validated.success) {
+			return false;
+		}
+
+		if (this.ws?.readyState !== WebSocket.OPEN) {
+			this.callbacks.onSendError(
+				"サーバに接続できていません。しばらくしてから再度お試しください。",
+			);
+			return false;
+		}
+
+		this.ws.send(JSON.stringify(validated.data));
+		return true;
+	}
+
 	/** 表示名をサーバへ登録（blur / 再接続時） */
 	sendSetDisplayName(displayName: string): boolean {
 		const payload: ClientSetDisplayNamePayload = {
@@ -103,6 +136,8 @@ export class ChatSocket {
 			const frame = parseWsFrame(text);
 			if (frame.kind === "post") {
 				this.callbacks.onPost(frame.post);
+			} else if (frame.kind === "reactions") {
+				this.callbacks.onReactions(frame.frame);
 			} else if (frame.kind === "participants") {
 				this.callbacks.onParticipants(frame.participants);
 			} else if (frame.kind === "error") {

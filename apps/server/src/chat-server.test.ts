@@ -289,3 +289,105 @@ describe("createChatServer participants roster", () => {
 		ws.close();
 	});
 });
+
+describe("createChatServer reactions", () => {
+	let chat: ReturnType<typeof createChatServer>;
+	let baseUrl: string;
+
+	beforeEach(async () => {
+		chat = createChatServer();
+		({ baseUrl } = await listen(chat.httpServer));
+	});
+
+	afterEach(async () => {
+		await chat.close();
+	});
+
+	it("broadcasts reaction counts to all clients when toggled", async () => {
+		const { ws: w1 } = await openWebSocket(baseUrl);
+		const { ws: w2 } = await openWebSocket(baseUrl);
+
+		const postPromise = nextText(w1);
+		const peerPostPromise = nextText(w2);
+		w1.send(JSON.stringify({ displayName: "Alice", body: "hello" }));
+		const post = JSON.parse(await postPromise) as { id: string };
+		await peerPostPromise;
+
+		const r1 = nextText(w1);
+		const r2 = nextText(w2);
+		w1.send(
+			JSON.stringify({
+				type: "reaction",
+				postId: post.id,
+				emoji: "👍",
+				displayName: "Alice",
+			}),
+		);
+
+		const [m1, m2] = await Promise.all([r1, r2]);
+		expect(m1).toBe(m2);
+		expect(JSON.parse(m1)).toEqual({
+			type: "reactions",
+			postId: post.id,
+			reactions: [{ emoji: "👍", count: 1 }],
+		});
+
+		w1.close();
+		w2.close();
+	});
+
+	it("removes a reaction when the same user toggles again", async () => {
+		const { ws } = await openWebSocket(baseUrl);
+
+		const postRaw = await (async () => {
+			const p = nextText(ws);
+			ws.send(JSON.stringify({ displayName: "Alice", body: "hi" }));
+			return p;
+		})();
+		const post = JSON.parse(postRaw) as { id: string };
+
+		ws.send(
+			JSON.stringify({
+				type: "reaction",
+				postId: post.id,
+				emoji: "✨",
+				displayName: "Alice",
+			}),
+		);
+		await nextText(ws);
+
+		const cleared = nextText(ws);
+		ws.send(
+			JSON.stringify({
+				type: "reaction",
+				postId: post.id,
+				emoji: "✨",
+				displayName: "Alice",
+			}),
+		);
+		expect(JSON.parse(await cleared)).toEqual({
+			type: "reactions",
+			postId: post.id,
+			reactions: [],
+		});
+
+		ws.close();
+	});
+
+	it("rejects invalid reaction emoji with error frame", async () => {
+		const { ws } = await openWebSocket(baseUrl);
+
+		ws.send(
+			JSON.stringify({
+				type: "reaction",
+				postId: "unknown",
+				emoji: "🔥",
+				displayName: "Alice",
+			}),
+		);
+		const errRaw = await nextText(ws);
+		expect(JSON.parse(errRaw)).toMatchObject({ type: "error" });
+
+		ws.close();
+	});
+});

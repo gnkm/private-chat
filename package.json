@@ -13,7 +13,7 @@
 		"format": "biome format --write .",
 		"test": "pnpm -r test",
 		"build": "pnpm --filter @private-chat/shared run build && pnpm --filter @private-chat/server run build && pnpm --filter @private-chat/web run build",
-		"dev": "pnpm --parallel --filter @private-chat/server --filter @private-chat/web run dev",
+		"dev": "pnpm --filter @private-chat/shared run build && pnpm --parallel --filter @private-chat/server --filter @private-chat/web run dev",
 		"start": "pnpm build && pnpm --filter @private-chat/server start"
 	},
 	"devDependencies": {

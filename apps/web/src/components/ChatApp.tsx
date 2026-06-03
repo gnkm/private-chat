@@ -24,6 +24,9 @@ type ChatAppProps = {
 export function ChatApp({ chatOptions }: ChatAppProps = {}) {
 	const {
 		posts,
+		reactionsByPostId,
+		myReactionsByPostId,
+		toggleReaction,
 		participants,
 		displayName,
 		draftBody,
@@ -100,7 +103,13 @@ export function ChatApp({ chatOptions }: ChatAppProps = {}) {
 							<ErrorBanner message={sendError} onDismiss={clearSendError} />
 						</div>
 					) : null}
-					<PostList posts={posts} currentDisplayName={displayName} />
+					<PostList
+						posts={posts}
+						currentDisplayName={displayName}
+						reactionsByPostId={reactionsByPostId}
+						myReactionsByPostId={myReactionsByPostId}
+						onToggleReaction={toggleReaction}
+					/>
 					<div className="shrink-0">
 						<MessageComposer
 							body={draftBody}

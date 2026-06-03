@@ -110,6 +110,16 @@ describe("clientInboundMessageSchema", () => {
 		}
 	});
 
+	it("parses reaction payload", () => {
+		const result = clientInboundMessageSchema.safeParse({
+			type: "reaction",
+			postId: "post-1",
+			emoji: "👍",
+			displayName: "Alice",
+		});
+		expect(result.success).toBe(true);
+	});
+
 	it("rejects ambiguous payload with both type and body", () => {
 		const result = clientInboundMessageSchema.safeParse({
 			type: "setDisplayName",
