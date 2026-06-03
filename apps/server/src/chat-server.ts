@@ -10,6 +10,13 @@ import {
 	serverBroadcastPostSchema,
 } from "@private-chat/shared";
 
+import { mountStaticSpa } from "./static-files.js";
+
+export type CreateChatServerOptions = {
+	/** 本番ビルド済みフロント（`apps/web/dist` 等）のディレクトリ */
+	staticDir?: string;
+};
+
 /** WebSocket パス（同一オリジンからの接続先） */
 export const WS_PATH = "/ws";
 
@@ -45,11 +52,17 @@ function scheduleForceTerminate(clients: WebSocket[]): () => void {
  * Express（ヘルスチェック）と `ws` の単一会話ルームサーバを同一プロセスで起動する。
  * 投稿本文はサーバに蓄積しない（検証後にブロードキャストのみ）。新規接続には過去ログを送らない。
  */
-export function createChatServer(): ChatServer {
+export function createChatServer(
+	options: CreateChatServerOptions = {},
+): ChatServer {
 	const app = express();
 	app.get("/health", (_req, res) => {
 		res.status(200).json({ ok: true });
 	});
+
+	if (options.staticDir) {
+		mountStaticSpa(app, options.staticDir);
+	}
 
 	const httpServer = http.createServer(app);
 	const clients = new Set<WebSocket>();
