@@ -21,11 +21,14 @@ try {
 	process.exit(1);
 }
 
+/** 閉じた LAN 向け: 全インターフェースで待ち受け（省略時と同じ実態を明示） */
+const LISTEN_HOST = "0.0.0.0";
+
 const chat = createChatServer(staticDir ? { staticDir } : {});
 
-chat.httpServer.listen(port, () => {
+chat.httpServer.listen(port, LISTEN_HOST, () => {
 	const mode = staticDir ? `static=${staticDir}` : "api-only";
 	console.log(
-		`Private Chat server listening on http://127.0.0.1:${port} (${mode})`,
+		`Private Chat server listening on http://${LISTEN_HOST}:${port} (${mode})`,
 	);
 });
