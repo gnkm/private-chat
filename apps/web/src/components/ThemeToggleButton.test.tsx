@@ -17,6 +17,12 @@ describe("ThemeToggleButton", () => {
 		document.documentElement.classList.remove("dark");
 	});
 
+	it("does not persist OS preference to localStorage until user toggles", () => {
+		render(<ThemeToggleButton />);
+
+		expect(localStorage.getItem(COLOR_SCHEME_STORAGE_KEY)).toBeNull();
+	});
+
 	it("toggles between light and dark and persists preference", async () => {
 		const user = userEvent.setup();
 		render(<ThemeToggleButton />);

@@ -15,11 +15,14 @@ export function useColorScheme() {
 
 	useEffect(() => {
 		applyColorSchemeToDocument(scheme);
-		saveColorScheme(scheme);
 	}, [scheme]);
 
 	const toggle = useCallback(() => {
-		setScheme((current) => toggleColorScheme(current));
+		setScheme((current) => {
+			const next = toggleColorScheme(current);
+			saveColorScheme(next);
+			return next;
+		});
 	}, []);
 
 	return { scheme, toggle };
