@@ -7,6 +7,7 @@ import { ChatApp } from "./components/ChatApp.js";
 import type { ChatSocket } from "./lib/chat-socket.js";
 import { DISPLAY_NAME_STORAGE_KEY } from "./lib/display-name.js";
 import { createFakeWebSocketClass } from "./lib/fake-websocket.js";
+import { withNavigatorPlatform } from "./test/stub-navigator-platform.js";
 
 describe("ChatApp (フェーズ3)", () => {
 	const { FakeWebSocket, getLastController } = createFakeWebSocketClass();
@@ -73,18 +74,18 @@ describe("ChatApp (フェーズ3)", () => {
 		expect(items[1]).toHaveTextContent("second");
 	});
 
-	it("does not send empty body on Enter (SRS-UI-003)", async () => {
+	it("does not send empty body on send shortcut (SRS-UI-003)", async () => {
 		const user = userEvent.setup();
 		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
 		await waitFor(() => expect(getLastController()?.readyState).toBe(1));
 
 		const textarea = screen.getByLabelText("メッセージ入力");
 		await user.click(textarea);
-		await user.keyboard("{Enter}");
+		await user.keyboard("{Control>}{Enter}{/Control}");
 		expect(getLastController()?.sent).toHaveLength(0);
 	});
 
-	it("sends post on Enter with display name and body", async () => {
+	it("does not send on plain Enter (IME conversion)", async () => {
 		const user = userEvent.setup();
 		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
 		await waitFor(() => expect(getLastController()?.readyState).toBe(1));
@@ -92,9 +93,25 @@ describe("ChatApp (フェーズ3)", () => {
 		await user.type(screen.getByLabelText("表示名"), "Alice");
 		await user.type(screen.getByLabelText("メッセージ入力"), "hello{Enter}");
 
-		expect(getLastController()?.sent).toEqual([
-			JSON.stringify({ displayName: "Alice", body: "hello" }),
-		]);
+		expect(getLastController()?.sent).toHaveLength(0);
+	});
+
+	it("sends post on Ctrl+Enter with display name and body", async () => {
+		const user = userEvent.setup();
+
+		await withNavigatorPlatform("Win32", async () => {
+			render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
+			await waitFor(() => expect(getLastController()?.readyState).toBe(1));
+
+			await user.type(screen.getByLabelText("表示名"), "Alice");
+			await user.click(screen.getByLabelText("メッセージ入力"));
+			await user.type(screen.getByLabelText("メッセージ入力"), "hello");
+			await user.keyboard("{Control>}{Enter}{/Control}");
+
+			expect(getLastController()?.sent).toEqual([
+				JSON.stringify({ displayName: "Alice", body: "hello" }),
+			]);
+		});
 	});
 
 	it("shows server error message (SRS-IF-003)", async () => {
@@ -139,7 +156,9 @@ describe("ChatApp (フェーズ3)", () => {
 			/>,
 		);
 
-		await user.type(screen.getByLabelText("メッセージ入力"), "x{Enter}");
+		await user.click(screen.getByLabelText("メッセージ入力"));
+		await user.type(screen.getByLabelText("メッセージ入力"), "x");
+		await user.keyboard("{Control>}{Enter}{/Control}");
 		expect(screen.getByRole("alert")).toHaveTextContent("オフラインです");
 		expect(screen.getByLabelText("メッセージ入力")).toHaveValue("x");
 	});
