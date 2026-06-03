@@ -4,6 +4,7 @@ import {
 	render,
 	screen,
 	waitFor,
+	within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
@@ -64,6 +65,20 @@ describe("PostList", () => {
 		expect(screen.queryByText(POST_LIST_EMPTY_HEADING)).not.toBeInTheDocument();
 		expect(screen.getByRole("list")).toBeInTheDocument();
 		expect(screen.getByText("hello")).toBeInTheDocument();
+	});
+
+	it("shows display name and sent date outside the bubble body", () => {
+		render(<PostList posts={[samplePost, secondPost]} />);
+
+		const bodies = document.querySelectorAll(".post-bubble-body");
+		for (const body of bodies) {
+			const element = body as HTMLElement;
+			expect(within(element).queryByText(/Alice|Bob/)).toBeNull();
+			expect(within(element).queryByRole("time")).toBeNull();
+		}
+		expect(screen.getByText("Alice")).toBeInTheDocument();
+		expect(screen.getByText("Bob")).toBeInTheDocument();
+		expect(screen.getAllByRole("time")).toHaveLength(2);
 	});
 
 	it("aligns own posts to the right and others to the left", () => {

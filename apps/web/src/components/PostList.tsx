@@ -1,12 +1,16 @@
 import type { ServerBroadcastPost } from "@private-chat/shared";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
-import { formatSentAt } from "../lib/format-sent-at.js";
+import { formatSentAtDate } from "../lib/format-sent-at.js";
 import { isOwnPost } from "../lib/post-alignment.js";
 import {
+	getPostAuthorNameClassName,
 	getPostBubbleBodyClassName,
 	getPostBubbleRowClassName,
 	getPostBubbleTailClassName,
+	getPostMessageColumnClassName,
+	getPostMetaClassName,
+	getPostSentAtClassName,
 } from "../lib/post-bubble.js";
 import {
 	isNearScrollBottom,
@@ -98,32 +102,37 @@ export function PostList({ posts, currentDisplayName = "" }: PostListProps) {
 									key={post.id}
 									className={`flex w-full ${own ? "justify-end" : "justify-start"}`}
 								>
-									<article className={getPostBubbleRowClassName(own)}>
-										{own ? null : (
-											<span
-												className={getPostBubbleTailClassName(false)}
-												aria-hidden
-											/>
-										)}
-										<div className={getPostBubbleBodyClassName(own)}>
-											<div className="flex items-baseline justify-between gap-2 text-xs text-stone-500 dark:text-stone-500">
-												<span className="font-semibold text-stone-800 dark:text-stone-300">
-													{post.displayName}
-												</span>
-												<time dateTime={post.sentAt}>
-													{formatSentAt(post.sentAt)}
-												</time>
-											</div>
-											<p className="mt-1 whitespace-pre-wrap text-sm text-stone-900 dark:text-stone-300">
-												{post.body}
-											</p>
+									<article className={getPostMessageColumnClassName(own)}>
+										<div className={getPostMetaClassName(own)}>
+											<span className={getPostAuthorNameClassName()}>
+												{post.displayName}
+											</span>
+											<time
+												className={getPostSentAtClassName()}
+												dateTime={post.sentAt}
+											>
+												{formatSentAtDate(post.sentAt)}
+											</time>
 										</div>
-										{own ? (
-											<span
-												className={getPostBubbleTailClassName(true)}
-												aria-hidden
-											/>
-										) : null}
+										<div className={getPostBubbleRowClassName(own)}>
+											{own ? null : (
+												<span
+													className={getPostBubbleTailClassName(false)}
+													aria-hidden
+												/>
+											)}
+											<div className={getPostBubbleBodyClassName(own)}>
+												<p className="whitespace-pre-wrap text-sm text-stone-900 dark:text-stone-300">
+													{post.body}
+												</p>
+											</div>
+											{own ? (
+												<span
+													className={getPostBubbleTailClassName(true)}
+													aria-hidden
+												/>
+											) : null}
+										</div>
 									</article>
 								</li>
 							);
