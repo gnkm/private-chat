@@ -96,6 +96,20 @@ describe("ChatApp (フェーズ3)", () => {
 		expect(getLastController()?.sent).toHaveLength(0);
 	});
 
+	it("sends post on send button click (SRS-UI-003)", async () => {
+		const user = userEvent.setup();
+		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
+		await waitFor(() => expect(getLastController()?.readyState).toBe(1));
+
+		await user.type(screen.getByLabelText("表示名"), "Alice");
+		await user.type(screen.getByLabelText("メッセージ入力"), "hello");
+		await user.click(screen.getByRole("button", { name: "送信" }));
+
+		expect(getLastController()?.sent).toEqual([
+			JSON.stringify({ displayName: "Alice", body: "hello" }),
+		]);
+	});
+
 	it("sends post on Ctrl+Enter with display name and body", async () => {
 		const user = userEvent.setup();
 

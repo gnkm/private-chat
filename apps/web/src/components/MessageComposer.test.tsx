@@ -40,6 +40,38 @@ describe("MessageComposer", () => {
 		});
 	});
 
+	it("calls onSend when send button is clicked (SRS-UI-003)", async () => {
+		const user = userEvent.setup();
+		const onSend = vi.fn();
+
+		render(
+			<MessageComposer body="hello" onBodyChange={vi.fn()} onSend={onSend} />,
+		);
+
+		await user.click(screen.getByRole("button", { name: "送信" }));
+
+		expect(onSend).toHaveBeenCalledTimes(1);
+	});
+
+	it("disables send button when body is empty", () => {
+		render(<MessageComposer body="" onBodyChange={vi.fn()} onSend={vi.fn()} />);
+
+		expect(screen.getByRole("button", { name: "送信" })).toBeDisabled();
+	});
+
+	it("does not call onSend when send button is disabled", async () => {
+		const user = userEvent.setup();
+		const onSend = vi.fn();
+
+		render(<MessageComposer body="" onBodyChange={vi.fn()} onSend={onSend} />);
+
+		const button = screen.getByRole("button", { name: "送信" });
+		expect(button).toBeDisabled();
+		await user.click(button);
+
+		expect(onSend).not.toHaveBeenCalled();
+	});
+
 	it("sends on Meta+Enter on Mac", async () => {
 		const user = userEvent.setup();
 		const onSend = vi.fn();
