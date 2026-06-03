@@ -24,7 +24,7 @@ export function DisplayNameField({ value, onChange }: DisplayNameFieldProps) {
 			<input
 				id="display-name"
 				type="text"
-				className="rounded border border-stone-300 bg-white px-2 py-1.5 text-stone-900 dark:border-stone-600 dark:bg-stone-950 dark:text-stone-100"
+				className="rounded border border-stone-300 bg-white px-2 py-1.5 text-stone-900 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300"
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
 				placeholder={DISPLAY_NAME_PLACEHOLDER}

@@ -87,17 +87,17 @@ export function PostList({ posts }: PostListProps) {
 						{posts.map((post) => (
 							<li
 								key={post.id}
-								className="rounded-lg border border-stone-200 bg-white px-3 py-2 shadow-sm dark:border-stone-700 dark:bg-stone-900"
+								className="rounded-lg border border-stone-200 bg-white px-3 py-2 shadow-sm dark:border-stone-700 dark:bg-stone-800/60 dark:shadow-none"
 							>
-								<div className="flex items-baseline justify-between gap-2 text-xs text-stone-500 dark:text-stone-400">
-									<span className="font-semibold text-stone-800 dark:text-stone-200">
+								<div className="flex items-baseline justify-between gap-2 text-xs text-stone-500 dark:text-stone-500">
+									<span className="font-semibold text-stone-800 dark:text-stone-300">
 										{post.displayName}
 									</span>
 									<time dateTime={post.sentAt}>
 										{formatSentAt(post.sentAt)}
 									</time>
 								</div>
-								<p className="mt-1 whitespace-pre-wrap text-sm text-stone-900 dark:text-stone-100">
+								<p className="mt-1 whitespace-pre-wrap text-sm text-stone-900 dark:text-stone-300">
 									{post.body}
 								</p>
 							</li>
@@ -108,7 +108,7 @@ export function PostList({ posts }: PostListProps) {
 			{showJumpToLatest ? (
 				<button
 					type="button"
-					className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-800 shadow-md hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700"
+					className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-800 shadow-md hover:bg-stone-100 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:shadow-none dark:hover:bg-stone-700"
 					onClick={scrollToBottom}
 				>
 					{JUMP_TO_LATEST_LABEL}

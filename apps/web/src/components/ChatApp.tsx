@@ -38,22 +38,22 @@ export function ChatApp({ chatOptions }: ChatAppProps = {}) {
 	const toggleSidebar = () => setSidebarOpen((open) => !open);
 
 	return (
-		<div className="flex h-full min-h-0 overflow-hidden bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
+		<div className="flex h-full min-h-0 overflow-hidden bg-stone-50 text-stone-900 dark:bg-stone-900 dark:text-stone-300">
 			<aside
 				id="chat-sidebar"
 				aria-label="サイドバー"
-				className={`flex shrink-0 flex-col overflow-hidden border-r border-stone-200 bg-stone-100 dark:border-stone-800 dark:bg-stone-900 ${SIDEBAR_TRANSITION_CLASS} ${
+				className={`flex shrink-0 flex-col overflow-hidden border-r border-stone-200 bg-stone-100 dark:border-stone-700 dark:bg-stone-800 ${SIDEBAR_TRANSITION_CLASS} ${
 					sidebarOpen ? SIDEBAR_WIDTH_OPEN_CLASS : SIDEBAR_WIDTH_COLLAPSED_CLASS
 				}`}
 			>
 				<div
-					className={`flex shrink-0 items-center border-b border-stone-200 py-2 transition-[padding] duration-300 ease-in-out motion-reduce:transition-none dark:border-stone-800 ${
+					className={`flex shrink-0 items-center border-b border-stone-200 py-2 transition-[padding] duration-300 ease-in-out motion-reduce:transition-none dark:border-stone-700 ${
 						sidebarOpen ? "justify-between gap-2 px-3" : "justify-center px-1"
 					}`}
 				>
 					{sidebarOpen ? (
 						<h1
-							className={`min-w-0 flex-1 truncate text-base font-semibold text-stone-800 dark:text-stone-100 ${SIDEBAR_CONTENT_TRANSITION_CLASS} opacity-100`}
+							className={`min-w-0 flex-1 truncate text-base font-semibold text-stone-800 dark:text-stone-200 ${SIDEBAR_CONTENT_TRANSITION_CLASS} opacity-100`}
 						>
 							Private Chat
 						</h1>

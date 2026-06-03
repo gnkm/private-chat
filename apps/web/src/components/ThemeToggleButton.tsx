@@ -9,7 +9,7 @@ export function ThemeToggleButton() {
 	return (
 		<button
 			type="button"
-			className="shrink-0 rounded-lg bg-stone-100 p-2 text-stone-700 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
+			className="shrink-0 rounded-lg bg-stone-100 p-2 text-stone-700 hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300 dark:hover:bg-stone-600"
 			aria-label={label}
 			title={label}
 			onClick={toggle}
