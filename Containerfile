@@ -19,7 +19,8 @@ COPY packages/shared packages/shared
 COPY apps/server apps/server
 COPY apps/web apps/web
 
-RUN pnpm build && pnpm prune --prod
+RUN pnpm build
+RUN pnpm --filter @private-chat/server deploy --prod /out/server
 
 FROM node:22-alpine AS runner
 
@@ -30,7 +31,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-COPY --from=builder --chown=app:app /app /app
+COPY --from=builder --chown=app:app /out/server/dist /app/apps/server/dist
+COPY --from=builder --chown=app:app /out/server/package.json /app/apps/server/package.json
+COPY --from=builder --chown=app:app /out/server/node_modules /app/apps/server/node_modules
+COPY --from=builder --chown=app:app /app/apps/web/dist /app/apps/web/dist
 
 USER app
 
