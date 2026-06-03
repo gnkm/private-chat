@@ -5,7 +5,7 @@ import type {
 } from "@private-chat/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { ChatSocket } from "../lib/chat-socket.js";
+import { ChatSocket, type ChatSocketCallbacks } from "../lib/chat-socket.js";
 import {
 	DISPLAY_NAME_REQUIRED_ERROR,
 	isDisplayNameBlank,
@@ -13,12 +13,7 @@ import {
 import { loadDisplayName, saveDisplayName } from "../lib/display-name.js";
 import { resolveWebSocketUrl } from "../lib/ws-url.js";
 
-export type ChatSocketCallbacks = {
-	onPost: (post: ServerBroadcastPost) => void;
-	onSendError: (message: string) => void;
-	onParticipants: (participants: Participant[]) => void;
-	onOpen: () => void;
-};
+export type { ChatSocketCallbacks };
 
 export type UseChatOptions = {
 	wsUrl?: string;
