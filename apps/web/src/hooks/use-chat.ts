@@ -123,11 +123,13 @@ export function useChat(options: UseChatOptions = {}) {
 				return;
 			}
 			setSendError(null);
+			if (!socketRef.current?.sendReaction(postId, emoji, displayName)) {
+				return;
+			}
 			setMyReactionsByPostId((prev) => {
 				const current = prev[postId] ?? new Set<ReactionEmoji>();
 				return { ...prev, [postId]: toggleMyReaction(current, emoji) };
 			});
-			socketRef.current?.sendReaction(postId, emoji, displayName);
 		},
 		[displayName],
 	);
