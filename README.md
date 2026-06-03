@@ -19,7 +19,7 @@ pnpm install
 pnpm dev
 ```
 
-サーバのポートを変える場合は `PORT` を指定し、`apps/web/vite.config.ts` のプロキシ先も合わせてください。
+サーバのポートを変える場合は `PORT` を指定し、`apps/web/.env` に `VITE_DEV_API_TARGET`（例: `http://127.0.0.1:3001`）を設定してプロキシ先を合わせてください。
 
 ## ビルドと本番起動
 
