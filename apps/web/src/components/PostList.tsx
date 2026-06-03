@@ -75,8 +75,8 @@ export function PostList({ posts }: PostListProps) {
 			>
 				{posts.length === 0 ? (
 					<div className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center">
-						<p className="text-sm text-slate-600">{POST_LIST_EMPTY_HEADING}</p>
-						<p className="mt-2 max-w-md text-xs text-slate-500">
+						<p className="text-sm text-stone-600">{POST_LIST_EMPTY_HEADING}</p>
+						<p className="mt-2 max-w-md text-xs text-stone-500">
 							{POST_LIST_EMPTY_DESCRIPTION}
 						</p>
 					</div>
@@ -85,17 +85,17 @@ export function PostList({ posts }: PostListProps) {
 						{posts.map((post) => (
 							<li
 								key={post.id}
-								className="rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm"
+								className="rounded-lg border border-stone-200 bg-white px-3 py-2 shadow-sm"
 							>
-								<div className="flex items-baseline justify-between gap-2 text-xs text-slate-500">
-									<span className="font-semibold text-slate-800">
+								<div className="flex items-baseline justify-between gap-2 text-xs text-stone-500">
+									<span className="font-semibold text-stone-800">
 										{post.displayName}
 									</span>
 									<time dateTime={post.sentAt}>
 										{formatSentAt(post.sentAt)}
 									</time>
 								</div>
-								<p className="mt-1 whitespace-pre-wrap text-sm text-slate-900">
+								<p className="mt-1 whitespace-pre-wrap text-sm text-stone-900">
 									{post.body}
 								</p>
 							</li>
@@ -106,7 +106,7 @@ export function PostList({ posts }: PostListProps) {
 			{showJumpToLatest ? (
 				<button
 					type="button"
-					className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-md hover:bg-slate-50"
+					className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-800 shadow-md hover:bg-stone-100"
 					onClick={scrollToBottom}
 				>
 					{JUMP_TO_LATEST_LABEL}

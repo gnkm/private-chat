@@ -16,7 +16,7 @@ export function SidebarToggleButton({
 	return (
 		<button
 			type="button"
-			className="shrink-0 rounded-lg bg-slate-200/80 p-2 text-slate-700 hover:bg-slate-200"
+			className="shrink-0 rounded-lg bg-stone-100 p-2 text-stone-700 hover:bg-stone-200"
 			aria-expanded={sidebarOpen}
 			aria-controls={controlsId}
 			aria-label={label}
