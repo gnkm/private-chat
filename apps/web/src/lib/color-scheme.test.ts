@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -97,5 +100,16 @@ describe("getThemeToggleLabel", () => {
 	it("describes the target mode", () => {
 		expect(getThemeToggleLabel("light")).toBe("ダークモードに切り替え");
 		expect(getThemeToggleLabel("dark")).toBe("ライトモードに切り替え");
+	});
+});
+
+describe("COLOR_SCHEME_STORAGE_KEY", () => {
+	it("matches index.html bootstrap script", () => {
+		const htmlPath = path.join(
+			path.dirname(fileURLToPath(import.meta.url)),
+			"../../index.html",
+		);
+		const html = readFileSync(htmlPath, "utf8");
+		expect(html).toContain(`var key = "${COLOR_SCHEME_STORAGE_KEY}"`);
 	});
 });

@@ -1,4 +1,7 @@
-/** localStorage キー（ライト／ダークのユーザー設定） */
+/**
+ * localStorage キー（ライト／ダークのユーザー設定）。
+ * index.html の初回描画用インラインスクリプトでも同じ文字列を使う（変更時は両方を揃える）。
+ */
 export const COLOR_SCHEME_STORAGE_KEY = "private-chat.colorScheme";
 
 export type ColorScheme = "light" | "dark";
