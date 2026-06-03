@@ -164,8 +164,11 @@ export function createChatServer(
 		roster.set(ws, { id: randomUUID(), displayName: null });
 		sendParticipantsSnapshot(ws);
 		ws.on("close", () => {
+			const record = roster.get(ws);
 			roster.delete(ws);
-			broadcastParticipants();
+			if (record?.displayName !== null) {
+				broadcastParticipants();
+			}
 		});
 		ws.on("message", (data: RawData, isBinary: boolean) => {
 			handleIncomingMessage(ws, data, isBinary);

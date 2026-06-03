@@ -252,6 +252,18 @@ describe("createChatServer participants roster", () => {
 		w2.close();
 	});
 
+	it("does not broadcast participants when unnamed client disconnects", async () => {
+		const { ws: w1 } = await openWebSocket(baseUrl);
+		const { ws: w2 } = await openWebSocket(baseUrl);
+
+		w1.close();
+		await new Promise<void>((resolve) => setTimeout(resolve, 10));
+
+		await expectNoMessageDuring(w2, 500);
+
+		w2.close();
+	});
+
 	it("includes existing participants in snapshot for late joiner", async () => {
 		const { ws: w1 } = await openWebSocket(baseUrl);
 
