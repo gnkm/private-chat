@@ -10,6 +10,22 @@ describe("MessageComposer", () => {
 		cleanup();
 	});
 
+	it("uses example placeholder and shows shortcut hint in footer", async () => {
+		await withNavigatorPlatform("Win32", async () => {
+			render(
+				<MessageComposer body="" onBodyChange={vi.fn()} onSend={vi.fn()} />,
+			);
+
+			expect(screen.getByLabelText("メッセージ入力")).toHaveAttribute(
+				"placeholder",
+				"メッセージを入力…",
+			);
+			expect(
+				screen.getByText("Ctrl+Enter で送信。Enter で改行"),
+			).toBeInTheDocument();
+		});
+	});
+
 	it("does not send on plain Enter (IME conversion)", async () => {
 		const user = userEvent.setup();
 		const onSend = vi.fn();

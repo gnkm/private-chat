@@ -3,6 +3,8 @@ import {
 	messageSendShortcutLabel,
 } from "../lib/message-send-shortcut.js";
 
+const MESSAGE_PLACEHOLDER = "メッセージを入力…";
+
 type MessageComposerProps = {
 	body: string;
 	onBodyChange: (value: string) => void;
@@ -15,6 +17,7 @@ export function MessageComposer({
 	onSend,
 }: MessageComposerProps) {
 	const sendShortcutLabel = messageSendShortcutLabel();
+	const composerHint = `${sendShortcutLabel}。Enter で改行`;
 
 	const canSend = body.length > 0;
 
@@ -23,7 +26,7 @@ export function MessageComposer({
 			<div className="flex items-end gap-2">
 				<textarea
 					className="min-h-24 min-w-0 flex-1 resize-y rounded border border-slate-300 px-3 py-2 text-sm text-slate-900"
-					placeholder={`メッセージを入力（${sendShortcutLabel}、Enter で改行）`}
+					placeholder={MESSAGE_PLACEHOLDER}
 					value={body}
 					onChange={(e) => onBodyChange(e.target.value)}
 					onKeyDown={(e) => {
@@ -51,7 +54,7 @@ export function MessageComposer({
 					送信
 				</button>
 			</div>
-			<p className="mt-1 text-xs text-slate-500">{sendShortcutLabel}</p>
+			<p className="mt-1 text-xs text-slate-500">{composerHint}</p>
 		</div>
 	);
 }
