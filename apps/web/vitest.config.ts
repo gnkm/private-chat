@@ -25,13 +25,8 @@ export default defineConfig({
 		setupFiles: ["./src/test/setup.ts"],
 		include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
 		execArgv: ["--no-webstorage"],
-		// GHA: 複数 fork + jsdom は OOM で Worker exited になる。1 プロセスに集約する。
+		// GHA: 複数 fork + jsdom は OOM で Worker exited になる。Vitest 4 では singleFork → maxWorkers: 1
 		// threads は execArgv（--no-webstorage）非対応（ERR_WORKER_INVALID_EXEC_ARGV）
-		...(process.env.CI
-			? {
-					pool: "forks",
-					poolOptions: { forks: { singleFork: true } },
-				}
-			: {}),
+		...(process.env.CI ? { pool: "forks", maxWorkers: 1 } : {}),
 	},
 });
