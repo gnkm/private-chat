@@ -6,15 +6,14 @@ import {
 	SIDEBAR_WIDTH_COLLAPSED_CLASS,
 	SIDEBAR_WIDTH_OPEN_CLASS,
 } from "../lib/sidebar-layout.js";
-
-const SIDEBAR_CONTENT_TRANSITION_CLASS =
-	"transition-opacity duration-300 ease-in-out motion-reduce:transition-none";
-
 import { ChatSidebar } from "./ChatSidebar.js";
 import { ErrorBanner } from "./ErrorBanner.js";
 import { MessageComposer } from "./MessageComposer.js";
 import { PostList } from "./PostList.js";
 import { SidebarToggleButton } from "./SidebarToggleButton.js";
+
+const SIDEBAR_CONTENT_TRANSITION_CLASS =
+	"transition-opacity duration-300 ease-in-out motion-reduce:transition-none";
 
 type ChatAppProps = {
 	chatOptions?: UseChatOptions;
