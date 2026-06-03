@@ -84,7 +84,7 @@ export function ChatApp({ chatOptions }: ChatAppProps = {}) {
 			</aside>
 
 			<div
-				className="flex min-h-0 min-w-0 flex-1 flex-col"
+				className="flex min-h-0 min-w-0 flex-1 flex-col dark:bg-stone-900"
 				aria-label="チャット"
 			>
 				<header className="flex shrink-0 items-center justify-end px-3 py-2">

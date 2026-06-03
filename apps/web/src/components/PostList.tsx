@@ -69,7 +69,7 @@ export function PostList({ posts }: PostListProps) {
 		<div className="relative flex min-h-0 flex-1 flex-col">
 			<section
 				ref={scrollRef}
-				className="flex flex-1 flex-col overflow-y-auto p-4"
+				className="flex flex-1 flex-col overflow-y-auto bg-stone-50 p-4 dark:bg-stone-900"
 				aria-label="投稿一覧"
 				onScroll={syncJumpButton}
 			>
@@ -87,7 +87,7 @@ export function PostList({ posts }: PostListProps) {
 						{posts.map((post) => (
 							<li
 								key={post.id}
-								className="rounded-lg border border-stone-200 bg-white px-3 py-2 shadow-sm dark:border-stone-700 dark:bg-stone-800/60 dark:shadow-none"
+								className="rounded-lg border border-stone-200 bg-white px-3 py-2 shadow-sm dark:border-stone-600 dark:bg-stone-800 dark:shadow-none"
 							>
 								<div className="flex items-baseline justify-between gap-2 text-xs text-stone-500 dark:text-stone-500">
 									<span className="font-semibold text-stone-800 dark:text-stone-300">
