@@ -1,7 +1,10 @@
 import {
 	type ClientPostPayload,
+	type ClientSetDisplayNamePayload,
+	type Participant,
 	type ServerBroadcastPost,
 	clientPostPayloadSchema,
+	clientSetDisplayNameSchema,
 } from "@private-chat/shared";
 
 import { parseWsFrame } from "./ws-frame.js";
@@ -10,6 +13,8 @@ import { computeReconnectDelayMs } from "./ws-reconnect.js";
 export type ChatSocketCallbacks = {
 	onPost: (post: ServerBroadcastPost) => void;
 	onSendError: (message: string) => void;
+	onParticipants: (participants: Participant[]) => void;
+	onOpen: () => void;
 };
 
 export type WebSocketFactory = (url: string) => WebSocket;
@@ -65,12 +70,32 @@ export class ChatSocket {
 		return true;
 	}
 
+	/** 表示名をサーバへ登録（blur / 再接続時） */
+	sendSetDisplayName(displayName: string): boolean {
+		const payload: ClientSetDisplayNamePayload = {
+			type: "setDisplayName",
+			displayName,
+		};
+		const validated = clientSetDisplayNameSchema.safeParse(payload);
+		if (!validated.success) {
+			return false;
+		}
+
+		if (this.ws?.readyState !== WebSocket.OPEN) {
+			return false;
+		}
+
+		this.ws.send(JSON.stringify(validated.data));
+		return true;
+	}
+
 	private openSocket(): void {
 		const ws = this.createWebSocket(this.url);
 		this.ws = ws;
 
 		ws.onopen = () => {
 			this.reconnectAttempt = 0;
+			this.callbacks.onOpen();
 		};
 
 		ws.onmessage = (event: MessageEvent) => {
@@ -78,6 +103,8 @@ export class ChatSocket {
 			const frame = parseWsFrame(text);
 			if (frame.kind === "post") {
 				this.callbacks.onPost(frame.post);
+			} else if (frame.kind === "participants") {
+				this.callbacks.onParticipants(frame.participants);
 			} else if (frame.kind === "error") {
 				this.callbacks.onSendError(frame.message);
 			}

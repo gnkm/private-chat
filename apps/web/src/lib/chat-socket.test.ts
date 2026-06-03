@@ -4,6 +4,26 @@ import { ChatSocket } from "./chat-socket.js";
 import type { FakeWebSocketController } from "./fake-websocket.js";
 import { createFakeWebSocketClass } from "./fake-websocket.js";
 
+const noopParticipants = vi.fn();
+const noopOpen = vi.fn();
+
+function socketCallbacks(
+	overrides: Partial<{
+		onPost: ReturnType<typeof vi.fn>;
+		onSendError: ReturnType<typeof vi.fn>;
+		onParticipants: ReturnType<typeof vi.fn>;
+		onOpen: ReturnType<typeof vi.fn>;
+	}> = {},
+) {
+	return {
+		onPost: vi.fn(),
+		onSendError: vi.fn(),
+		onParticipants: noopParticipants,
+		onOpen: noopOpen,
+		...overrides,
+	};
+}
+
 describe("ChatSocket (SRS-IF-001, SRS-IF-003)", () => {
 	let FakeWebSocket: ReturnType<
 		typeof createFakeWebSocketClass
@@ -25,7 +45,7 @@ describe("ChatSocket (SRS-IF-001, SRS-IF-003)", () => {
 		const onPost = vi.fn();
 		const socket = new ChatSocket(
 			"ws://test/ws",
-			{ onPost, onSendError: vi.fn() },
+			socketCallbacks({ onPost }),
 			() => new FakeWebSocket("ws://test/ws"),
 		);
 		socket.connect();
@@ -53,7 +73,7 @@ describe("ChatSocket (SRS-IF-001, SRS-IF-003)", () => {
 		const onSendError = vi.fn();
 		const socket = new ChatSocket(
 			"ws://test/ws",
-			{ onPost: vi.fn(), onSendError },
+			socketCallbacks({ onSendError }),
 			() => new FakeWebSocket("ws://test/ws"),
 		);
 		socket.connect();
@@ -70,7 +90,7 @@ describe("ChatSocket (SRS-IF-001, SRS-IF-003)", () => {
 	it("does not send empty body (SRS-FUNC-001)", async () => {
 		const socket = new ChatSocket(
 			"ws://test/ws",
-			{ onPost: vi.fn(), onSendError: vi.fn() },
+			socketCallbacks(),
 			() => new FakeWebSocket("ws://test/ws"),
 		);
 		socket.connect();
@@ -84,7 +104,7 @@ describe("ChatSocket (SRS-IF-001, SRS-IF-003)", () => {
 	it("schedules reconnect with backoff after unexpected close", async () => {
 		const socket = new ChatSocket(
 			"ws://test/ws",
-			{ onPost: vi.fn(), onSendError: vi.fn() },
+			socketCallbacks(),
 			() => new FakeWebSocket("ws://test/ws"),
 		);
 		socket.connect();
@@ -94,6 +114,57 @@ describe("ChatSocket (SRS-IF-001, SRS-IF-003)", () => {
 
 		await vi.advanceTimersByTimeAsync(1_000);
 		await vi.waitFor(() => expect(getLastController()).not.toBe(first));
+		socket.dispose();
+	});
+
+	it("invokes onParticipants when participants frame arrives", async () => {
+		const onParticipants = vi.fn();
+		const socket = new ChatSocket(
+			"ws://test/ws",
+			socketCallbacks({ onParticipants }),
+			() => new FakeWebSocket("ws://test/ws"),
+		);
+		socket.connect();
+		await vi.waitFor(() => expect(getLastController()?.readyState).toBe(1));
+
+		getLastController()?.simulateMessage(
+			JSON.stringify({
+				type: "participants",
+				participants: [{ id: "p1", displayName: "Alice" }],
+			}),
+		);
+
+		expect(onParticipants).toHaveBeenCalledWith([
+			{ id: "p1", displayName: "Alice" },
+		]);
+		socket.dispose();
+	});
+
+	it("sends setDisplayName payload", async () => {
+		const socket = new ChatSocket(
+			"ws://test/ws",
+			socketCallbacks(),
+			() => new FakeWebSocket("ws://test/ws"),
+		);
+		socket.connect();
+		await vi.waitFor(() => expect(getLastController()?.readyState).toBe(1));
+
+		expect(socket.sendSetDisplayName("Alice")).toBe(true);
+		expect(getLastController()?.sent).toContainEqual(
+			JSON.stringify({ type: "setDisplayName", displayName: "Alice" }),
+		);
+		socket.dispose();
+	});
+
+	it("invokes onOpen when connection opens", async () => {
+		const onOpen = vi.fn();
+		const socket = new ChatSocket(
+			"ws://test/ws",
+			socketCallbacks({ onOpen }),
+			() => new FakeWebSocket("ws://test/ws"),
+		);
+		socket.connect();
+		await vi.waitFor(() => expect(onOpen).toHaveBeenCalled());
 		socket.dispose();
 	});
 });

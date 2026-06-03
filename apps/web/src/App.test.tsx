@@ -8,8 +8,8 @@ import {
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { ServerBroadcastPost } from "@private-chat/shared";
 import { ChatApp } from "./components/ChatApp.js";
+import type { ChatSocketCallbacks } from "./hooks/use-chat.js";
 import type { ChatSocket } from "./lib/chat-socket.js";
 import { DISPLAY_NAME_STORAGE_KEY } from "./lib/display-name.js";
 import { createFakeWebSocketClass } from "./lib/fake-websocket.js";
@@ -18,6 +18,26 @@ import { withNavigatorPlatform } from "./test/stub-navigator-platform.js";
 
 describe("ChatApp (フェーズ3)", () => {
 	const { FakeWebSocket, getLastController } = createFakeWebSocketClass();
+
+	function sentPayloads(): unknown[] {
+		return (getLastController()?.sent ?? []).map(
+			(raw) => JSON.parse(raw) as unknown,
+		);
+	}
+
+	function expectNoPostsSent(): void {
+		const posts = sentPayloads().filter(
+			(payload) =>
+				typeof payload === "object" && payload !== null && "body" in payload,
+		);
+		expect(posts).toHaveLength(0);
+	}
+
+	function expectPostSent(displayName: string, body: string): void {
+		expect(getLastController()?.sent).toContainEqual(
+			JSON.stringify({ displayName, body }),
+		);
+	}
 
 	beforeEach(() => {
 		localStorage.clear();
@@ -44,6 +64,7 @@ describe("ChatApp (フェーズ3)", () => {
 			within(sidebar).getByRole("button", { name: "サイドバーを閉じる" }),
 		).toBeInTheDocument();
 		expect(screen.getByLabelText("表示名")).toBeInTheDocument();
+		expect(screen.getByRole("heading", { name: "参加者" })).toBeInTheDocument();
 		expect(screen.getByLabelText("投稿一覧")).toBeInTheDocument();
 		expect(screen.getByLabelText("メッセージ入力")).toBeInTheDocument();
 	});
@@ -127,7 +148,7 @@ describe("ChatApp (フェーズ3)", () => {
 		await user.type(screen.getByLabelText("メッセージ入力"), "hello");
 		await user.click(screen.getByRole("button", { name: "送信" }));
 
-		expect(getLastController()?.sent).toHaveLength(0);
+		expectNoPostsSent();
 		expect(screen.getByRole("alert")).toHaveTextContent(
 			"表示名を入力してから送信してください。",
 		);
@@ -143,7 +164,7 @@ describe("ChatApp (フェーズ3)", () => {
 		await user.type(screen.getByLabelText("メッセージ入力"), "hello");
 		await user.keyboard("{Control>}{Enter}{/Control}");
 
-		expect(getLastController()?.sent).toHaveLength(0);
+		expectNoPostsSent();
 		expect(screen.getByRole("alert")).toHaveTextContent(
 			"表示名を入力してから送信してください。",
 		);
@@ -157,7 +178,7 @@ describe("ChatApp (フェーズ3)", () => {
 		const textarea = screen.getByLabelText("メッセージ入力");
 		await user.click(textarea);
 		await user.keyboard("{Control>}{Enter}{/Control}");
-		expect(getLastController()?.sent).toHaveLength(0);
+		expectNoPostsSent();
 	});
 
 	it("does not send on plain Enter (IME conversion)", async () => {
@@ -168,7 +189,7 @@ describe("ChatApp (フェーズ3)", () => {
 		await typeDisplayName(user, "Alice");
 		await user.type(screen.getByLabelText("メッセージ入力"), "hello{Enter}");
 
-		expect(getLastController()?.sent).toHaveLength(0);
+		expectNoPostsSent();
 	});
 
 	it("sends post on send button click (SRS-UI-003)", async () => {
@@ -180,9 +201,7 @@ describe("ChatApp (フェーズ3)", () => {
 		await user.type(screen.getByLabelText("メッセージ入力"), "hello");
 		await user.click(screen.getByRole("button", { name: "送信" }));
 
-		expect(getLastController()?.sent).toEqual([
-			JSON.stringify({ displayName: "Alice", body: "hello" }),
-		]);
+		expectPostSent("Alice", "hello");
 	});
 
 	it("sends post on Ctrl+Enter with display name and body", async () => {
@@ -197,9 +216,51 @@ describe("ChatApp (フェーズ3)", () => {
 			await user.type(screen.getByLabelText("メッセージ入力"), "hello");
 			await user.keyboard("{Control>}{Enter}{/Control}");
 
-			expect(getLastController()?.sent).toEqual([
-				JSON.stringify({ displayName: "Alice", body: "hello" }),
-			]);
+			expectPostSent("Alice", "hello");
+		});
+	});
+
+	it("shows participants when participants frame arrives", async () => {
+		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
+		await waitFor(() => expect(getLastController()?.readyState).toBe(1));
+
+		getLastController()?.simulateMessage(
+			JSON.stringify({
+				type: "participants",
+				participants: [{ id: "p1", displayName: "Alice" }],
+			}),
+		);
+
+		await waitFor(() => {
+			expect(screen.getByRole("listitem")).toHaveTextContent("Alice");
+		});
+	});
+
+	it("sends setDisplayName on display name blur", async () => {
+		const user = userEvent.setup();
+		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
+		await waitFor(() => expect(getLastController()?.readyState).toBe(1));
+
+		const input = screen.getByLabelText("表示名");
+		await user.clear(input);
+		await user.type(input, "Alice");
+		await user.tab();
+
+		await waitFor(() => {
+			expect(getLastController()?.sent).toContainEqual(
+				JSON.stringify({ type: "setDisplayName", displayName: "Alice" }),
+			);
+		});
+	});
+
+	it("announces stored display name on connect", async () => {
+		localStorage.setItem(DISPLAY_NAME_STORAGE_KEY, "Alice");
+		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
+
+		await waitFor(() => {
+			expect(getLastController()?.sent).toContainEqual(
+				JSON.stringify({ type: "setDisplayName", displayName: "Alice" }),
+			);
 		});
 	});
 
@@ -222,13 +283,7 @@ describe("ChatApp (フェーズ3)", () => {
 			<ChatApp
 				chatOptions={{
 					wsUrl: "ws://test/ws",
-					createSocket: (
-						_url: string,
-						callbacks: {
-							onPost: (post: ServerBroadcastPost) => void;
-							onSendError: (message: string) => void;
-						},
-					) => {
+					createSocket: (_url: string, callbacks: ChatSocketCallbacks) => {
 						const stub = {
 							connect: vi.fn(),
 							dispose: vi.fn(),
@@ -236,6 +291,7 @@ describe("ChatApp (フェーズ3)", () => {
 								callbacks.onSendError("オフラインです");
 								return false;
 							},
+							sendSetDisplayName: vi.fn(),
 						};
 						return stub as unknown as ChatSocket;
 					},

@@ -1,10 +1,11 @@
 import type {
 	ClientPostPayload,
+	Participant,
 	ServerBroadcastPost,
 } from "@private-chat/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { ChatSocket } from "../lib/chat-socket.js";
+import { ChatSocket, type ChatSocketCallbacks } from "../lib/chat-socket.js";
 import {
 	DISPLAY_NAME_REQUIRED_ERROR,
 	isDisplayNameBlank,
@@ -12,27 +13,30 @@ import {
 import { loadDisplayName, saveDisplayName } from "../lib/display-name.js";
 import { resolveWebSocketUrl } from "../lib/ws-url.js";
 
+export type { ChatSocketCallbacks };
+
 export type UseChatOptions = {
 	wsUrl?: string;
-	createSocket?: (
-		url: string,
-		callbacks: {
-			onPost: (post: ServerBroadcastPost) => void;
-			onSendError: (message: string) => void;
-		},
-	) => ChatSocket;
+	createSocket?: (url: string, callbacks: ChatSocketCallbacks) => ChatSocket;
 };
 
 export function useChat(options: UseChatOptions = {}) {
 	const [posts, setPosts] = useState<ServerBroadcastPost[]>([]);
+	const [participants, setParticipants] = useState<Participant[]>([]);
 	const [displayName, setDisplayName] = useState(() => loadDisplayName());
 	const [draftBody, setDraftBody] = useState("");
 	const [sendError, setSendError] = useState<string | null>(null);
 	const socketRef = useRef<ChatSocket | undefined>(undefined);
+	const displayNameRef = useRef(displayName);
+	displayNameRef.current = displayName;
 
 	const wsUrl = options.wsUrl ?? resolveWebSocketUrl();
 	const createSocketRef = useRef(options.createSocket);
 	createSocketRef.current = options.createSocket;
+
+	const announceDisplayName = useCallback((name: string) => {
+		socketRef.current?.sendSetDisplayName(name);
+	}, []);
 
 	useEffect(() => {
 		const socket =
@@ -43,6 +47,15 @@ export function useChat(options: UseChatOptions = {}) {
 				onSendError: (message) => {
 					setSendError(message);
 				},
+				onParticipants: (next) => {
+					setParticipants(next);
+				},
+				onOpen: () => {
+					const stored = loadDisplayName();
+					if (!isDisplayNameBlank(stored)) {
+						announceDisplayName(stored);
+					}
+				},
 			}) ??
 			new ChatSocket(wsUrl, {
 				onPost: (post) => {
@@ -50,6 +63,15 @@ export function useChat(options: UseChatOptions = {}) {
 				},
 				onSendError: (message) => {
 					setSendError(message);
+				},
+				onParticipants: (next) => {
+					setParticipants(next);
+				},
+				onOpen: () => {
+					const stored = loadDisplayName();
+					if (!isDisplayNameBlank(stored)) {
+						announceDisplayName(stored);
+					}
 				},
 			});
 
@@ -60,12 +82,18 @@ export function useChat(options: UseChatOptions = {}) {
 			socket.dispose();
 			socketRef.current = undefined;
 		};
-	}, [wsUrl]);
+	}, [wsUrl, announceDisplayName]);
 
 	const updateDisplayName = useCallback((name: string) => {
 		setDisplayName(name);
 		saveDisplayName(name);
 	}, []);
+
+	const commitDisplayName = useCallback(() => {
+		if (!isDisplayNameBlank(displayNameRef.current)) {
+			announceDisplayName(displayNameRef.current);
+		}
+	}, [announceDisplayName]);
 
 	const sendMessage = useCallback(() => {
 		if (draftBody.length === 0) {
@@ -89,11 +117,13 @@ export function useChat(options: UseChatOptions = {}) {
 
 	return {
 		posts,
+		participants,
 		displayName,
 		draftBody,
 		sendError,
 		setDraftBody,
 		updateDisplayName,
+		commitDisplayName,
 		sendMessage,
 		clearSendError,
 	};
