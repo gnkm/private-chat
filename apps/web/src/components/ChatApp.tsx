@@ -68,6 +68,7 @@ export function ChatApp({ chatOptions }: ChatAppProps = {}) {
 				</div>
 				<div
 					id="chat-sidebar-panel"
+					inert={!sidebarOpen ? true : undefined}
 					aria-hidden={!sidebarOpen}
 					className={`flex flex-col overflow-y-auto overscroll-contain ${SIDEBAR_CONTENT_TRANSITION_CLASS} ${
 						sidebarOpen

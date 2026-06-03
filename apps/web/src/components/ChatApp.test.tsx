@@ -48,6 +48,7 @@ describe("ChatApp responsive sidebar", () => {
 			within(sidebar).getByRole("button", { name: "サイドバーを開く" }),
 		).toHaveAttribute("title", "サイドバーを開く");
 		const panel = document.getElementById("chat-sidebar-panel");
+		expect(panel).toHaveAttribute("inert");
 		expect(panel).toHaveAttribute("aria-hidden", "true");
 		expect(
 			screen.queryByRole("heading", { name: "Private Chat" }),
