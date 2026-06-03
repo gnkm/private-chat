@@ -33,6 +33,10 @@ describe("ChatApp (フェーズ3)", () => {
 	it("shows Slack-like layout with sidebar and main area (SRS-UI-001)", () => {
 		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
 		const sidebar = screen.getByLabelText("サイドバー");
+		const chatPane = screen.getByLabelText("チャット");
+		expect(
+			within(chatPane).getByRole("button", { name: "ダークモードに切り替え" }),
+		).toBeInTheDocument();
 		expect(
 			within(sidebar).getByRole("heading", { name: "Private Chat" }),
 		).toBeInTheDocument();

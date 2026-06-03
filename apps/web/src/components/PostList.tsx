@@ -69,14 +69,16 @@ export function PostList({ posts }: PostListProps) {
 		<div className="relative flex min-h-0 flex-1 flex-col">
 			<section
 				ref={scrollRef}
-				className="flex flex-1 flex-col overflow-y-auto p-4"
+				className="flex flex-1 flex-col overflow-y-auto bg-stone-50 p-4 dark:bg-stone-900"
 				aria-label="投稿一覧"
 				onScroll={syncJumpButton}
 			>
 				{posts.length === 0 ? (
 					<div className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center">
-						<p className="text-sm text-stone-600">{POST_LIST_EMPTY_HEADING}</p>
-						<p className="mt-2 max-w-md text-xs text-stone-500">
+						<p className="text-sm text-stone-600 dark:text-stone-400">
+							{POST_LIST_EMPTY_HEADING}
+						</p>
+						<p className="mt-2 max-w-md text-xs text-stone-500 dark:text-stone-400">
 							{POST_LIST_EMPTY_DESCRIPTION}
 						</p>
 					</div>
@@ -85,17 +87,17 @@ export function PostList({ posts }: PostListProps) {
 						{posts.map((post) => (
 							<li
 								key={post.id}
-								className="rounded-lg border border-stone-200 bg-white px-3 py-2 shadow-sm"
+								className="rounded-lg border border-stone-200 bg-white px-3 py-2 shadow-sm dark:border-stone-600 dark:bg-stone-800 dark:shadow-none"
 							>
-								<div className="flex items-baseline justify-between gap-2 text-xs text-stone-500">
-									<span className="font-semibold text-stone-800">
+								<div className="flex items-baseline justify-between gap-2 text-xs text-stone-500 dark:text-stone-500">
+									<span className="font-semibold text-stone-800 dark:text-stone-300">
 										{post.displayName}
 									</span>
 									<time dateTime={post.sentAt}>
 										{formatSentAt(post.sentAt)}
 									</time>
 								</div>
-								<p className="mt-1 whitespace-pre-wrap text-sm text-stone-900">
+								<p className="mt-1 whitespace-pre-wrap text-sm text-stone-900 dark:text-stone-300">
 									{post.body}
 								</p>
 							</li>
@@ -106,7 +108,7 @@ export function PostList({ posts }: PostListProps) {
 			{showJumpToLatest ? (
 				<button
 					type="button"
-					className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-800 shadow-md hover:bg-stone-100"
+					className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-800 shadow-md hover:bg-stone-100 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:shadow-none dark:hover:bg-stone-700"
 					onClick={scrollToBottom}
 				>
 					{JUMP_TO_LATEST_LABEL}

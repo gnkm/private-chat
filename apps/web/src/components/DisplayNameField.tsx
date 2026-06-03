@@ -15,13 +15,16 @@ export function DisplayNameField({ value, onChange }: DisplayNameFieldProps) {
 
 	return (
 		<div className="flex flex-col gap-1 text-sm">
-			<label htmlFor="display-name" className="font-medium text-stone-700">
+			<label
+				htmlFor="display-name"
+				className="font-medium text-stone-700 dark:text-stone-300"
+			>
 				表示名
 			</label>
 			<input
 				id="display-name"
 				type="text"
-				className="rounded border border-stone-300 px-2 py-1.5 text-stone-900"
+				className="rounded border border-stone-300 bg-white px-2 py-1.5 text-stone-900 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300"
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
 				placeholder={DISPLAY_NAME_PLACEHOLDER}
@@ -30,7 +33,7 @@ export function DisplayNameField({ value, onChange }: DisplayNameFieldProps) {
 				aria-describedby={showHint ? hintId : undefined}
 			/>
 			{showHint ? (
-				<p id={hintId} className="text-xs text-amber-800">
+				<p id={hintId} className="text-xs text-amber-800 dark:text-amber-300">
 					{DISPLAY_NAME_EMPTY_HINT}
 				</p>
 			) : null}
