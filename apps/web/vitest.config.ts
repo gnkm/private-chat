@@ -25,9 +25,10 @@ export default defineConfig({
 		setupFiles: ["./src/test/setup.ts"],
 		include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
 		execArgv: ["--no-webstorage"],
-		// GHA: 既定の fork 大量並列は OOM/EPIPE になる。threads で並列数を抑える
+		// GHA: 既定の fork 大量並列は OOM/EPIPE になる。並列数だけ抑える。
+		// threads プールは execArgv（--no-webstorage）を Worker に渡せず ERR_WORKER_INVALID_EXEC_ARGV になる
 		...(process.env.CI
-			? { pool: "threads", maxWorkers: 4, fileParallelism: true }
+			? { pool: "forks", maxWorkers: 4, fileParallelism: true }
 			: {}),
 	},
 });
