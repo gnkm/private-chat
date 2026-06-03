@@ -1,11 +1,7 @@
 import type { BundledLanguage } from "shiki";
 import { createHighlighter } from "shiki";
 
-/** ライトモード用テーマ（GitHub 風・読みやすいコントラスト） */
-export const SHIKI_LIGHT_THEME = "github-light";
-
-/** ダークモード用テーマ（stone 背景と調和するダークトーン） */
-export const SHIKI_DARK_THEME = "github-dark";
+import { loadAppConfig } from "../config/load-app-config.js";
 
 const PRELOADED_LANGS = [
 	"javascript",
@@ -33,16 +29,36 @@ const LANGUAGE_ALIASES: Record<string, string> = {
 
 type ShikiHighlighter = Awaited<ReturnType<typeof createHighlighter>>;
 
-let highlighterPromise: Promise<ShikiHighlighter> | undefined;
+type HighlighterCache = {
+	configKey: string;
+	highlighter: ShikiHighlighter;
+};
 
-function getHighlighter(): Promise<ShikiHighlighter> {
-	if (!highlighterPromise) {
-		highlighterPromise = createHighlighter({
-			themes: [SHIKI_LIGHT_THEME, SHIKI_DARK_THEME],
-			langs: [...PRELOADED_LANGS, FALLBACK_LANG],
-		});
+let highlighterCache: Promise<HighlighterCache> | undefined;
+
+function getConfigKey(
+	config: Awaited<ReturnType<typeof loadAppConfig>>,
+): string {
+	return `${config.shiki.light}:${config.shiki.dark}`;
+}
+
+async function getHighlighterCache(): Promise<HighlighterCache> {
+	const config = await loadAppConfig();
+	const configKey = getConfigKey(config);
+
+	if (highlighterCache) {
+		const cached = await highlighterCache;
+		if (cached.configKey === configKey) {
+			return cached;
+		}
 	}
-	return highlighterPromise;
+
+	highlighterCache = createHighlighter({
+		themes: [config.shiki.light, config.shiki.dark],
+		langs: [...PRELOADED_LANGS, FALLBACK_LANG],
+	}).then((highlighter) => ({ configKey, highlighter }));
+
+	return highlighterCache;
 }
 
 async function resolveLanguage(
@@ -72,14 +88,22 @@ export async function highlightCode(
 	code: string,
 	language: string | null,
 ): Promise<string> {
-	const highlighter = await getHighlighter();
+	const [config, { highlighter }] = await Promise.all([
+		loadAppConfig(),
+		getHighlighterCache(),
+	]);
 	const lang = await resolveLanguage(highlighter, language);
 
 	return highlighter.codeToHtml(code, {
 		lang: lang as BundledLanguage,
 		themes: {
-			light: SHIKI_LIGHT_THEME,
-			dark: SHIKI_DARK_THEME,
+			light: config.shiki.light,
+			dark: config.shiki.dark,
 		},
 	});
+}
+
+/** テスト用: ハイライタキャッシュを破棄する */
+export function resetShikiHighlighterCache(): void {
+	highlighterCache = undefined;
 }

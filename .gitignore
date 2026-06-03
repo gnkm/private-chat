@@ -5,3 +5,6 @@ coverage/
 .turbo/
 *.tsbuildinfo
 .DS_Store
+
+# ユーザー固有のランタイム設定（テンプレートは config.example.jsonc）
+apps/web/public/config.jsonc
