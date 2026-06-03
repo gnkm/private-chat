@@ -1,6 +1,8 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { MESSAGE_BODY_MAX_CODE_POINTS } from "@private-chat/shared";
 
 import { withNavigatorPlatform } from "../test/stub-navigator-platform.js";
 import { MessageComposer } from "./MessageComposer.js";
@@ -8,6 +10,34 @@ import { MessageComposer } from "./MessageComposer.js";
 describe("MessageComposer", () => {
 	afterEach(() => {
 		cleanup();
+	});
+
+	it("shows message body code point counter (SRS-FUNC-007)", () => {
+		render(
+			<MessageComposer body="hello" onBodyChange={vi.fn()} onSend={vi.fn()} />,
+		);
+
+		expect(screen.getByText("5 / 12,000")).toBeInTheDocument();
+		expect(screen.getByLabelText("メッセージ入力")).toHaveAttribute(
+			"aria-describedby",
+			"message-body-counter message-composer-hint",
+		);
+	});
+
+	it("truncates input beyond max code points on change", () => {
+		const onBodyChange = vi.fn();
+		render(
+			<MessageComposer body="" onBodyChange={onBodyChange} onSend={vi.fn()} />,
+		);
+
+		const overLimit = `${"a".repeat(MESSAGE_BODY_MAX_CODE_POINTS)}😀`;
+		fireEvent.change(screen.getByLabelText("メッセージ入力"), {
+			target: { value: overLimit },
+		});
+
+		expect(onBodyChange).toHaveBeenCalledWith(
+			"a".repeat(MESSAGE_BODY_MAX_CODE_POINTS),
+		);
 	});
 
 	it("uses example placeholder and shows shortcut hint in footer", async () => {
