@@ -95,7 +95,9 @@ export function useChat(options: UseChatOptions = {}) {
 	}, []);
 
 	const commitDisplayName = useCallback(() => {
-		announceDisplayName(displayNameRef.current);
+		if (!isDisplayNameBlank(displayNameRef.current)) {
+			announceDisplayName(displayNameRef.current);
+		}
 	}, [announceDisplayName]);
 
 	const sendMessage = useCallback(() => {
