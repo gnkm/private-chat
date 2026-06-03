@@ -74,8 +74,18 @@ export function reactionCountsFromRoster(
 	return counts;
 }
 
-export function isReactionMessage(message: {
-	type?: string;
-}): message is ClientReactionPayload {
-	return message.type === "reaction";
+/**
+ * 投稿 payload（`type` なし）と判別するため、引数は `ClientInboundMessage` ではなく
+ * `unknown` とする。`{ type?: string }` だと TypeScript が投稿型を引数に渡せず
+ * サーバビルドが失敗する。
+ */
+export function isReactionMessage(
+	message: unknown,
+): message is ClientReactionPayload {
+	return (
+		typeof message === "object" &&
+		message !== null &&
+		"type" in message &&
+		(message as { type: unknown }).type === "reaction"
+	);
 }

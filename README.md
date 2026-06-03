@@ -1,5 +1,7 @@
 # Private Chat
 
+[![CI](https://github.com/gnkm/private-chat/actions/workflows/ci.yml/badge.svg)](https://github.com/gnkm/private-chat/actions/workflows/ci.yml)
+
 Slack ライクな簡易チャットアプリケーション（閉じたネットワーク向け）。
 
 ## 前提
