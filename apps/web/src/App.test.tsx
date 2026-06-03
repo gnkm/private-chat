@@ -33,6 +33,28 @@ describe("ChatApp (フェーズ3)", () => {
 		expect(screen.getByLabelText("メッセージ入力")).toBeInTheDocument();
 	});
 
+	it("keeps message composer visible when many posts arrive", async () => {
+		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
+		await waitFor(() => expect(getLastController()?.readyState).toBe(1));
+
+		for (let i = 1; i <= 20; i += 1) {
+			getLastController()?.simulateMessage(
+				JSON.stringify({
+					id: String(i),
+					displayName: "A",
+					body: `message-${i}`,
+					sentAt: `2026-04-18T12:${String(i).padStart(2, "0")}:00.000Z`,
+				}),
+			);
+		}
+
+		await waitFor(() => {
+			expect(screen.getAllByRole("listitem")).toHaveLength(20);
+		});
+		expect(screen.getByLabelText("メッセージ入力")).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "送信" })).toBeInTheDocument();
+	});
+
 	it("shows empty state when there are no posts", () => {
 		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
 

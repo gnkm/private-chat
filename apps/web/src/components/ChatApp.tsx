@@ -23,21 +23,25 @@ export function ChatApp({ chatOptions }: ChatAppProps = {}) {
 	} = useChat(chatOptions ?? {});
 
 	return (
-		<div className="flex min-h-screen bg-slate-100 text-slate-900">
+		<div className="flex h-full min-h-0 overflow-hidden bg-slate-100 text-slate-900">
 			<aside className="flex w-56 shrink-0 flex-col gap-4 border-r border-slate-200 bg-slate-50 p-4">
 				<h1 className="text-lg font-bold text-slate-800">Private Chat</h1>
 				<DisplayNameField value={displayName} onChange={updateDisplayName} />
 			</aside>
-			<main className="flex min-w-0 flex-1 flex-col">
+			<main className="flex min-h-0 min-w-0 flex-1 flex-col">
 				{sendError ? (
-					<ErrorBanner message={sendError} onDismiss={clearSendError} />
+					<div className="shrink-0">
+						<ErrorBanner message={sendError} onDismiss={clearSendError} />
+					</div>
 				) : null}
 				<PostList posts={posts} />
-				<MessageComposer
-					body={draftBody}
-					onBodyChange={setDraftBody}
-					onSend={sendMessage}
-				/>
+				<div className="shrink-0">
+					<MessageComposer
+						body={draftBody}
+						onBodyChange={setDraftBody}
+						onSend={sendMessage}
+					/>
+				</div>
 			</main>
 		</div>
 	);
