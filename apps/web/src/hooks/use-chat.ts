@@ -5,6 +5,10 @@ import type {
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ChatSocket } from "../lib/chat-socket.js";
+import {
+	DISPLAY_NAME_REQUIRED_ERROR,
+	isDisplayNameBlank,
+} from "../lib/display-name-validation.js";
 import { loadDisplayName, saveDisplayName } from "../lib/display-name.js";
 import { resolveWebSocketUrl } from "../lib/ws-url.js";
 
@@ -65,6 +69,10 @@ export function useChat(options: UseChatOptions = {}) {
 
 	const sendMessage = useCallback(() => {
 		if (draftBody.length === 0) {
+			return;
+		}
+		if (isDisplayNameBlank(displayName)) {
+			setSendError(DISPLAY_NAME_REQUIRED_ERROR);
 			return;
 		}
 		setSendError(null);

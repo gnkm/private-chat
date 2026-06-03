@@ -104,6 +104,36 @@ describe("ChatApp (フェーズ3)", () => {
 		expect(items[1]).toHaveTextContent("second");
 	});
 
+	it("does not send when display name is empty and shows error", async () => {
+		const user = userEvent.setup();
+		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
+		await waitFor(() => expect(getLastController()?.readyState).toBe(1));
+
+		await user.type(screen.getByLabelText("メッセージ入力"), "hello");
+		await user.click(screen.getByRole("button", { name: "送信" }));
+
+		expect(getLastController()?.sent).toHaveLength(0);
+		expect(screen.getByRole("alert")).toHaveTextContent(
+			"表示名を入力してから送信してください。",
+		);
+		expect(screen.getByLabelText("メッセージ入力")).toHaveValue("hello");
+	});
+
+	it("does not send when display name is whitespace only", async () => {
+		const user = userEvent.setup();
+		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
+		await waitFor(() => expect(getLastController()?.readyState).toBe(1));
+
+		await user.type(screen.getByLabelText("表示名"), "   ");
+		await user.type(screen.getByLabelText("メッセージ入力"), "hello");
+		await user.keyboard("{Control>}{Enter}{/Control}");
+
+		expect(getLastController()?.sent).toHaveLength(0);
+		expect(screen.getByRole("alert")).toHaveTextContent(
+			"表示名を入力してから送信してください。",
+		);
+	});
+
 	it("does not send empty body on send shortcut (SRS-UI-003)", async () => {
 		const user = userEvent.setup();
 		render(<ChatApp chatOptions={{ wsUrl: "ws://test/ws" }} />);
@@ -172,34 +202,33 @@ describe("ChatApp (フェーズ3)", () => {
 	});
 
 	it("shows error when socket is not open on send", async () => {
-		const createSocket = (
-			_url: string,
-			callbacks: {
-				onPost: (post: ServerBroadcastPost) => void;
-				onSendError: (message: string) => void;
-			},
-		) => {
-			const stub = {
-				connect: vi.fn(),
-				dispose: vi.fn(),
-				sendPost: () => {
-					callbacks.onSendError("オフラインです");
-					return false;
-				},
-			};
-			return stub as unknown as ChatSocket;
-		};
-
 		const user = userEvent.setup();
 		render(
 			<ChatApp
 				chatOptions={{
 					wsUrl: "ws://test/ws",
-					createSocket,
+					createSocket: (
+						_url: string,
+						callbacks: {
+							onPost: (post: ServerBroadcastPost) => void;
+							onSendError: (message: string) => void;
+						},
+					) => {
+						const stub = {
+							connect: vi.fn(),
+							dispose: vi.fn(),
+							sendPost: () => {
+								callbacks.onSendError("オフラインです");
+								return false;
+							},
+						};
+						return stub as unknown as ChatSocket;
+					},
 				}}
 			/>,
 		);
 
+		await user.type(screen.getByLabelText("表示名"), "Alice");
 		await user.click(screen.getByLabelText("メッセージ入力"));
 		await user.type(screen.getByLabelText("メッセージ入力"), "x");
 		await user.keyboard("{Control>}{Enter}{/Control}");
