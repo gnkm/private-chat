@@ -22,6 +22,17 @@ describe("parseWsFrame", () => {
 		});
 	});
 
+	it("parses participants frame", () => {
+		const raw = JSON.stringify({
+			type: "participants",
+			participants: [{ id: "p1", displayName: "Alice" }],
+		});
+		expect(parseWsFrame(raw)).toEqual({
+			kind: "participants",
+			participants: [{ id: "p1", displayName: "Alice" }],
+		});
+	});
+
 	it("parses server error frames (SRS-IF-003)", () => {
 		const raw = JSON.stringify({ type: "error", message: "body is required" });
 		expect(parseWsFrame(raw)).toEqual({

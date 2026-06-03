@@ -7,9 +7,14 @@ import {
 type DisplayNameFieldProps = {
 	value: string;
 	onChange: (value: string) => void;
+	onBlur?: () => void;
 };
 
-export function DisplayNameField({ value, onChange }: DisplayNameFieldProps) {
+export function DisplayNameField({
+	value,
+	onChange,
+	onBlur,
+}: DisplayNameFieldProps) {
 	const showHint = isDisplayNameBlank(value);
 	const hintId = "display-name-hint";
 
@@ -27,6 +32,7 @@ export function DisplayNameField({ value, onChange }: DisplayNameFieldProps) {
 				className="rounded border border-stone-300 bg-white px-2 py-1.5 text-stone-900 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300"
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
+				onBlur={onBlur}
 				placeholder={DISPLAY_NAME_PLACEHOLDER}
 				autoComplete="nickname"
 				spellCheck={false}

@@ -1,6 +1,8 @@
 import {
+	type Participant,
 	type ServerBroadcastPost,
 	serverBroadcastPostSchema,
+	serverParticipantsFrameSchema,
 } from "@private-chat/shared";
 import { z } from "zod";
 
@@ -13,6 +15,7 @@ const serverErrorFrameSchema = z
 
 export type ParsedWsFrame =
 	| { kind: "post"; post: ServerBroadcastPost }
+	| { kind: "participants"; participants: Participant[] }
 	| { kind: "error"; message: string }
 	| { kind: "invalid" };
 
@@ -22,6 +25,14 @@ export function parseWsFrame(raw: string): ParsedWsFrame {
 		parsed = JSON.parse(raw) as unknown;
 	} catch {
 		return { kind: "invalid" };
+	}
+
+	const participantsResult = serverParticipantsFrameSchema.safeParse(parsed);
+	if (participantsResult.success) {
+		return {
+			kind: "participants",
+			participants: participantsResult.data.participants,
+		};
 	}
 
 	const postResult = serverBroadcastPostSchema.safeParse(parsed);

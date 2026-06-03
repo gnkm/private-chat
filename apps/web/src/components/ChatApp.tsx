@@ -24,11 +24,13 @@ type ChatAppProps = {
 export function ChatApp({ chatOptions }: ChatAppProps = {}) {
 	const {
 		posts,
+		participants,
 		displayName,
 		draftBody,
 		sendError,
 		setDraftBody,
 		updateDisplayName,
+		commitDisplayName,
 		sendMessage,
 		clearSendError,
 	} = useChat(chatOptions ?? {});
@@ -78,7 +80,9 @@ export function ChatApp({ chatOptions }: ChatAppProps = {}) {
 				>
 					<ChatSidebar
 						displayName={displayName}
+						participants={participants}
 						onDisplayNameChange={updateDisplayName}
+						onDisplayNameCommit={commitDisplayName}
 					/>
 				</div>
 			</aside>
