@@ -57,16 +57,51 @@ describe("isMessageSendShortcut", () => {
 });
 
 describe("isMacPlatform", () => {
-	it("detects Mac from navigator.platform", () => {
+	it("detects Mac from navigator.platform fallback", () => {
 		const original = navigator.platform;
 		Object.defineProperty(navigator, "platform", {
 			configurable: true,
 			value: "MacIntel",
 		});
-		expect(isMacPlatform()).toBe(true);
+		try {
+			expect(isMacPlatform()).toBe(true);
+		} finally {
+			Object.defineProperty(navigator, "platform", {
+				configurable: true,
+				value: original,
+			});
+		}
+	});
+
+	it("prefers navigator.userAgentData.platform when available", () => {
+		const nav = navigator as Navigator & {
+			userAgentData?: { platform?: string };
+		};
+		const originalPlatform = navigator.platform;
+		const originalUad = nav.userAgentData;
 		Object.defineProperty(navigator, "platform", {
 			configurable: true,
-			value: original,
+			value: "Win32",
 		});
+		Object.defineProperty(navigator, "userAgentData", {
+			configurable: true,
+			value: { platform: "macOS" },
+		});
+		try {
+			expect(isMacPlatform()).toBe(true);
+		} finally {
+			Object.defineProperty(navigator, "platform", {
+				configurable: true,
+				value: originalPlatform,
+			});
+			if (originalUad === undefined) {
+				Reflect.deleteProperty(navigator, "userAgentData");
+			} else {
+				Object.defineProperty(navigator, "userAgentData", {
+					configurable: true,
+					value: originalUad,
+				});
+			}
+		}
 	});
 });

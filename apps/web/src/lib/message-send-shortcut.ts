@@ -6,11 +6,18 @@ type MessageSendShortcutEvent = {
 	isComposing: boolean;
 };
 
+function getNavigatorPlatform(): string {
+	const nav = navigator as Navigator & {
+		userAgentData?: { platform?: string };
+	};
+	return nav.userAgentData?.platform ?? navigator.platform;
+}
+
 export function isMacPlatform(): boolean {
 	if (typeof navigator === "undefined") {
 		return false;
 	}
-	return /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+	return /Mac|macOS|iPod|iPhone|iPad/i.test(getNavigatorPlatform());
 }
 
 export function isMessageSendShortcut(
