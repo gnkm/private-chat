@@ -41,10 +41,6 @@ body {
 	background-color: var(--post-bubble-bg);
 }
 
-.dark .post-bubble-body--other {
-	border: 1px solid #57534e; /* stone-600 */
-}
-
 /* 角丸（rounded-2xl）の下端付近に合わせる */
 .post-bubble-tail--other,
 .post-bubble-tail--own {
