@@ -1,5 +1,5 @@
 import {
-	REACTION_EMOJIS,
+	DEFAULT_REACTION_EMOJIS,
 	type ReactionCount,
 	type ReactionEmoji,
 } from "@private-chat/shared";
@@ -8,6 +8,7 @@ import { countForEmoji } from "../lib/reactions.js";
 
 type PostReactionsProps = {
 	postId: string;
+	reactionEmojis?: readonly string[];
 	reactions: ReactionCount[] | undefined;
 	myReactions: ReadonlySet<ReactionEmoji>;
 	ownPost: boolean;
@@ -23,6 +24,7 @@ function reactionButtonLabel(emoji: ReactionEmoji, count: number): string {
 
 export function PostReactions({
 	postId,
+	reactionEmojis = DEFAULT_REACTION_EMOJIS,
 	reactions,
 	myReactions,
 	ownPost,
@@ -33,7 +35,7 @@ export function PostReactions({
 			className={`mt-1 flex flex-wrap gap-1 border-0 p-0 ${ownPost ? "justify-end" : "justify-start"}`}
 			aria-label="リアクション"
 		>
-			{REACTION_EMOJIS.map((emoji) => {
+			{reactionEmojis.map((emoji) => {
 				const count = countForEmoji(reactions, emoji);
 				const active = myReactions.has(emoji);
 				return (

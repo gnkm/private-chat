@@ -1,24 +1,14 @@
-import { parse } from "jsonc-parser";
-import { z } from "zod";
+import {
+	type AppConfig,
+	DEFAULT_APP_CONFIG,
+	parseAppConfigText,
+} from "@private-chat/shared";
 
 /** ブラウザが fetch するランタイム設定（Git 管理外） */
 export const APP_CONFIG_PATH = "/config.jsonc";
 
-export const DEFAULT_APP_CONFIG = {
-	shiki: {
-		light: "github-light",
-		dark: "github-dark",
-	},
-} as const;
-
-const appConfigSchema = z.object({
-	shiki: z.object({
-		light: z.string().min(1),
-		dark: z.string().min(1),
-	}),
-});
-
-export type AppConfig = z.infer<typeof appConfigSchema>;
+export { DEFAULT_APP_CONFIG };
+export type { AppConfig };
 
 type LoadAppConfigOptions = {
 	fetchImpl?: typeof fetch;
@@ -43,18 +33,19 @@ async function fetchAppConfig(fetchImpl: typeof fetch): Promise<AppConfig> {
 	try {
 		const response = await fetchImpl(APP_CONFIG_PATH);
 		if (!response.ok) {
-			return { ...DEFAULT_APP_CONFIG };
+			return cloneDefaultAppConfig();
 		}
 
 		const text = await response.text();
-		const parsed: unknown = parse(text);
-		const result = appConfigSchema.safeParse(parsed);
-		if (!result.success) {
-			return { ...DEFAULT_APP_CONFIG };
-		}
-
-		return result.data;
+		return parseAppConfigText(text);
 	} catch {
-		return { ...DEFAULT_APP_CONFIG };
+		return cloneDefaultAppConfig();
 	}
+}
+
+function cloneDefaultAppConfig(): AppConfig {
+	return {
+		shiki: { ...DEFAULT_APP_CONFIG.shiki },
+		reactions: { emojis: [...DEFAULT_APP_CONFIG.reactions.emojis] },
+	};
 }

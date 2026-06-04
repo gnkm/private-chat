@@ -30,6 +30,9 @@ describe("loadAppConfig", () => {
 				light: "vitesse-light",
 				dark: "nord",
 			},
+			reactions: {
+				emojis: ["👍", "🙏", "👀", "✨"],
+			},
 		});
 		expect(fetchImpl).toHaveBeenCalledWith(APP_CONFIG_PATH);
 	});
@@ -54,6 +57,21 @@ describe("loadAppConfig", () => {
 		await expect(loadAppConfig({ fetchImpl })).resolves.toEqual(
 			DEFAULT_APP_CONFIG,
 		);
+	});
+
+	it("loads custom reaction emojis from config.jsonc", async () => {
+		const fetchImpl = vi.fn(async () => ({
+			ok: true,
+			text: async () => `{ "reactions": { "emojis": ["🔥", "👍"] } }`,
+		})) as unknown as typeof fetch;
+
+		await expect(loadAppConfig({ fetchImpl })).resolves.toEqual({
+			shiki: {
+				light: "github-light",
+				dark: "github-dark",
+			},
+			reactions: { emojis: ["🔥", "👍"] },
+		});
 	});
 
 	it("caches the loaded config", async () => {

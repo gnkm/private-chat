@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest";
 
+import { DEFAULT_REACTION_EMOJIS } from "./reaction-config.js";
 import {
 	REACTION_EMOJIS,
-	clientReactionPayloadSchema,
+	createReactionSchemas,
 	reactionCountsFromRoster,
-	serverReactionsFrameSchema,
 	toggleReactionOnRoster,
 } from "./reaction-schemas.js";
 
+const defaultSchemas = createReactionSchemas();
+
 describe("clientReactionPayloadSchema", () => {
 	it("accepts a valid reaction toggle", () => {
-		const result = clientReactionPayloadSchema.safeParse({
+		const result = defaultSchemas.clientReactionPayloadSchema.safeParse({
 			type: "reaction",
 			postId: "post-1",
 			emoji: "👍",
@@ -20,7 +22,7 @@ describe("clientReactionPayloadSchema", () => {
 	});
 
 	it("rejects unknown emoji", () => {
-		const result = clientReactionPayloadSchema.safeParse({
+		const result = defaultSchemas.clientReactionPayloadSchema.safeParse({
 			type: "reaction",
 			postId: "post-1",
 			emoji: "🔥",
@@ -32,7 +34,7 @@ describe("clientReactionPayloadSchema", () => {
 
 describe("serverReactionsFrameSchema", () => {
 	it("accepts reactions with counts", () => {
-		const result = serverReactionsFrameSchema.safeParse({
+		const result = defaultSchemas.serverReactionsFrameSchema.safeParse({
 			type: "reactions",
 			postId: "post-1",
 			reactions: [
@@ -47,18 +49,20 @@ describe("serverReactionsFrameSchema", () => {
 describe("toggleReactionOnRoster", () => {
 	it("adds then removes a reaction for the same user", () => {
 		let roster = toggleReactionOnRoster(new Map(), "👍", "Alice");
-		expect(reactionCountsFromRoster(roster)).toEqual([
+		expect(reactionCountsFromRoster(roster, DEFAULT_REACTION_EMOJIS)).toEqual([
 			{ emoji: "👍", count: 1 },
 		]);
 
 		roster = toggleReactionOnRoster(roster, "👍", "Alice");
-		expect(reactionCountsFromRoster(roster)).toEqual([]);
+		expect(reactionCountsFromRoster(roster, DEFAULT_REACTION_EMOJIS)).toEqual(
+			[],
+		);
 	});
 
 	it("tracks multiple users on the same emoji", () => {
 		let roster = toggleReactionOnRoster(new Map(), "👀", "Alice");
 		roster = toggleReactionOnRoster(roster, "👀", "Bob");
-		expect(reactionCountsFromRoster(roster)).toEqual([
+		expect(reactionCountsFromRoster(roster, DEFAULT_REACTION_EMOJIS)).toEqual([
 			{ emoji: "👀", count: 2 },
 		]);
 	});
@@ -66,7 +70,7 @@ describe("toggleReactionOnRoster", () => {
 	it("allows one user to react with multiple emojis", () => {
 		let roster = toggleReactionOnRoster(new Map(), "👍", "Alice");
 		roster = toggleReactionOnRoster(roster, "🙏", "Alice");
-		expect(reactionCountsFromRoster(roster)).toEqual([
+		expect(reactionCountsFromRoster(roster, DEFAULT_REACTION_EMOJIS)).toEqual([
 			{ emoji: "👍", count: 1 },
 			{ emoji: "🙏", count: 1 },
 		]);
@@ -74,5 +78,28 @@ describe("toggleReactionOnRoster", () => {
 
 	it("only exposes allowed emojis in stable order", () => {
 		expect(REACTION_EMOJIS).toEqual(["👍", "🙏", "👀", "✨"]);
+	});
+});
+
+describe("createReactionSchemas", () => {
+	it("accepts custom emoji lists from config", () => {
+		const schemas = createReactionSchemas(["🔥", "👍"]);
+		expect(schemas.allowedEmojis).toEqual(["🔥", "👍"]);
+		expect(
+			schemas.clientReactionPayloadSchema.safeParse({
+				type: "reaction",
+				postId: "p1",
+				emoji: "🔥",
+				displayName: "Bob",
+			}).success,
+		).toBe(true);
+		expect(
+			schemas.clientReactionPayloadSchema.safeParse({
+				type: "reaction",
+				postId: "p1",
+				emoji: "✨",
+				displayName: "Bob",
+			}).success,
+		).toBe(false);
 	});
 });

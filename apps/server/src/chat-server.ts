@@ -8,16 +8,17 @@ import {
 	type Participant,
 	type ReactionEmoji,
 	type ReactionRoster,
+	type ReactionSchemas,
 	type ServerBroadcastPost,
 	type ServerParticipantsFrame,
 	type ServerReactionsFrame,
-	clientInboundMessageSchema,
+	createClientInboundMessageSchema,
+	createReactionSchemas,
 	isReactionMessage,
 	isSetDisplayNameMessage,
 	reactionCountsFromRoster,
 	serverBroadcastPostSchema,
 	serverParticipantsFrameSchema,
-	serverReactionsFrameSchema,
 	toggleReactionOnRoster,
 } from "@private-chat/shared";
 
@@ -26,6 +27,8 @@ import { mountStaticSpa } from "./static-files.js";
 export type CreateChatServerOptions = {
 	/** 本番ビルド済みフロント（`apps/web/dist` 等）のディレクトリ */
 	staticDir?: string;
+	/** `config.jsonc` の `reactions.emojis`（未指定時はデフォルト 4 種） */
+	reactionEmojis?: readonly string[];
 };
 
 /** WebSocket パス（同一オリジンからの接続先） */
@@ -95,6 +98,14 @@ function scheduleForceTerminate(clients: WebSocket[]): () => void {
 export function createChatServer(
 	options: CreateChatServerOptions = {},
 ): ChatServer {
+	const reactionSchemas: ReactionSchemas = createReactionSchemas(
+		options.reactionEmojis,
+	);
+	const clientInboundMessageSchema =
+		createClientInboundMessageSchema(reactionSchemas);
+	const { serverReactionsFrameSchema } = reactionSchemas;
+	const allowedReactionEmojis = reactionSchemas.allowedEmojis;
+
 	const app = express();
 	app.get("/health", (_req, res) => {
 		res.status(200).json({ ok: true });
@@ -150,7 +161,7 @@ export function createChatServer(
 		const frame: ServerReactionsFrame = {
 			type: "reactions",
 			postId,
-			reactions: reactionCountsFromRoster(rosterForPost),
+			reactions: reactionCountsFromRoster(rosterForPost, allowedReactionEmojis),
 		};
 		const validated = serverReactionsFrameSchema.safeParse(frame);
 		if (!validated.success) {

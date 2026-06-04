@@ -4,14 +4,15 @@ import {
 	type ClientSetDisplayNamePayload,
 	type Participant,
 	type ReactionEmoji,
+	type ReactionSchemas,
 	type ServerBroadcastPost,
 	type ServerReactionsFrame,
 	clientPostPayloadSchema,
-	clientReactionPayloadSchema,
 	clientSetDisplayNameSchema,
+	createReactionSchemas,
 } from "@private-chat/shared";
 
-import { parseWsFrame } from "./ws-frame.js";
+import { createParseWsFrame } from "./ws-frame.js";
 import { computeReconnectDelayMs } from "./ws-reconnect.js";
 
 export type ChatSocketCallbacks = {
@@ -24,11 +25,13 @@ export type ChatSocketCallbacks = {
 
 export type WebSocketFactory = (url: string) => WebSocket;
 
+export type ChatSocketOptions = {
+	reactionSchemas?: ReactionSchemas;
+};
+
 export class ChatSocket {
-	private ws: WebSocket | undefined;
-	private reconnectAttempt = 0;
-	private reconnectTimer: ReturnType<typeof setTimeout> | undefined;
-	private disposed = false;
+	private readonly reactionSchemas: ReactionSchemas;
+	private readonly parseWsFrame: ReturnType<typeof createParseWsFrame>;
 
 	constructor(
 		private readonly url: string,
@@ -40,7 +43,16 @@ export class ChatSocket {
 			fn: () => void,
 		) => ReturnType<typeof setTimeout> = (delayMs, fn) =>
 			setTimeout(fn, delayMs),
-	) {}
+		options: ChatSocketOptions = {},
+	) {
+		this.reactionSchemas = options.reactionSchemas ?? createReactionSchemas();
+		this.parseWsFrame = createParseWsFrame(this.reactionSchemas);
+	}
+
+	private ws: WebSocket | undefined;
+	private reconnectAttempt = 0;
+	private reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+	private disposed = false;
 
 	connect(): void {
 		this.clearReconnectTimer();
@@ -87,7 +99,8 @@ export class ChatSocket {
 			emoji,
 			displayName,
 		};
-		const validated = clientReactionPayloadSchema.safeParse(payload);
+		const validated =
+			this.reactionSchemas.clientReactionPayloadSchema.safeParse(payload);
 		if (!validated.success) {
 			return false;
 		}
@@ -133,7 +146,7 @@ export class ChatSocket {
 
 		ws.onmessage = (event: MessageEvent) => {
 			const text = typeof event.data === "string" ? event.data : "";
-			const frame = parseWsFrame(text);
+			const frame = this.parseWsFrame(text);
 			if (frame.kind === "post") {
 				this.callbacks.onPost(frame.post);
 			} else if (frame.kind === "reactions") {

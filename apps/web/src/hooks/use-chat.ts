@@ -4,7 +4,8 @@ import type {
 	ReactionEmoji,
 	ServerBroadcastPost,
 } from "@private-chat/shared";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { createReactionSchemas } from "@private-chat/shared";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ChatSocket, type ChatSocketCallbacks } from "../lib/chat-socket.js";
 import {
@@ -23,6 +24,7 @@ export type { ChatSocketCallbacks };
 
 export type UseChatOptions = {
 	wsUrl?: string;
+	reactionEmojis?: readonly string[];
 	createSocket?: (url: string, callbacks: ChatSocketCallbacks) => ChatSocket;
 };
 
@@ -43,6 +45,10 @@ export function useChat(options: UseChatOptions = {}) {
 	displayNameRef.current = displayName;
 
 	const wsUrl = options.wsUrl ?? resolveWebSocketUrl();
+	const reactionSchemas = useMemo(
+		() => createReactionSchemas(options.reactionEmojis),
+		[options.reactionEmojis],
+	);
 	const createSocketRef = useRef(options.createSocket);
 	createSocketRef.current = options.createSocket;
 
@@ -74,7 +80,9 @@ export function useChat(options: UseChatOptions = {}) {
 
 		const socket =
 			createSocketRef.current?.(wsUrl, socketCallbacks) ??
-			new ChatSocket(wsUrl, socketCallbacks);
+			new ChatSocket(wsUrl, socketCallbacks, undefined, undefined, {
+				reactionSchemas,
+			});
 
 		socketRef.current = socket;
 		socket.connect();
@@ -83,7 +91,7 @@ export function useChat(options: UseChatOptions = {}) {
 			socket.dispose();
 			socketRef.current = undefined;
 		};
-	}, [wsUrl, announceDisplayName]);
+	}, [wsUrl, announceDisplayName, reactionSchemas]);
 
 	const updateDisplayName = useCallback((name: string) => {
 		setDisplayName(name);
