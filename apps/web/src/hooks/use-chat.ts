@@ -45,10 +45,16 @@ export function useChat(options: UseChatOptions = {}) {
 	displayNameRef.current = displayName;
 
 	const wsUrl = options.wsUrl ?? resolveWebSocketUrl();
-	const reactionSchemas = useMemo(
-		() => createReactionSchemas(options.reactionEmojis),
-		[options.reactionEmojis],
-	);
+	const reactionEmojisKey = options.reactionEmojis?.join(",");
+	const reactionSchemas = useMemo(() => {
+		if (reactionEmojisKey === undefined) {
+			return createReactionSchemas(undefined);
+		}
+		if (reactionEmojisKey === "") {
+			return createReactionSchemas([]);
+		}
+		return createReactionSchemas(reactionEmojisKey.split(","));
+	}, [reactionEmojisKey]);
 	const createSocketRef = useRef(options.createSocket);
 	createSocketRef.current = options.createSocket;
 
