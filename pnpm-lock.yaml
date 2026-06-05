@@ -70,9 +70,6 @@ importers:
       '@private-chat/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      jsonc-parser:
-        specifier: ^3.3.1
-        version: 3.3.1
       react:
         specifier: ^19.0.0
         version: 19.2.7
@@ -128,6 +125,9 @@ importers:
 
   packages/shared:
     dependencies:
+      jsonc-parser:
+        specifier: ^3.3.1
+        version: 3.3.1
       zod:
         specifier: ^3.24.0
         version: 3.25.76

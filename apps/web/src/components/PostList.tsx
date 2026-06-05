@@ -1,4 +1,8 @@
-import type { ReactionEmoji, ServerBroadcastPost } from "@private-chat/shared";
+import {
+	DEFAULT_REACTION_EMOJIS,
+	type ReactionEmoji,
+	type ServerBroadcastPost,
+} from "@private-chat/shared";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 import { formatSentAt } from "../lib/format-sent-at.js";
@@ -28,6 +32,7 @@ export const JUMP_TO_LATEST_LABEL = "新着へ";
 type PostListProps = {
 	posts: ServerBroadcastPost[];
 	currentDisplayName?: string;
+	reactionEmojis?: readonly string[];
 	reactionsByPostId?: ReactionsByPostId;
 	myReactionsByPostId?: Record<string, ReadonlySet<ReactionEmoji>>;
 	onToggleReaction?: (postId: string, emoji: ReactionEmoji) => void;
@@ -36,6 +41,7 @@ type PostListProps = {
 export function PostList({
 	posts,
 	currentDisplayName = "",
+	reactionEmojis,
 	reactionsByPostId = {},
 	myReactionsByPostId = {},
 	onToggleReaction = () => {},
@@ -145,6 +151,7 @@ export function PostList({
 										</div>
 										<PostReactions
 											postId={post.id}
+											reactionEmojis={reactionEmojis ?? DEFAULT_REACTION_EMOJIS}
 											reactions={reactionsByPostId[post.id]}
 											myReactions={myReactionsByPostId[post.id] ?? new Set()}
 											ownPost={own}

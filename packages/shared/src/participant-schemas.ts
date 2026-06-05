@@ -1,7 +1,10 @@
 import { z } from "zod";
 
 import { clientPostPayloadSchema } from "./message-schemas.js";
-import { clientReactionPayloadSchema } from "./reaction-schemas.js";
+import {
+	type ReactionSchemas,
+	createReactionSchemas,
+} from "./reaction-schemas.js";
 
 /** クライアント → サーバ（表示名登録）。blur / 接続時に送信。 */
 export const clientSetDisplayNameSchema = z
@@ -36,11 +39,17 @@ export type ServerParticipantsFrame = z.infer<
 	typeof serverParticipantsFrameSchema
 >;
 
-export const clientInboundMessageSchema = z.union([
-	clientSetDisplayNameSchema,
-	clientReactionPayloadSchema,
-	clientPostPayloadSchema,
-]);
+export function createClientInboundMessageSchema(
+	reactionSchemas: ReactionSchemas = createReactionSchemas(),
+) {
+	return z.union([
+		clientSetDisplayNameSchema,
+		reactionSchemas.clientReactionPayloadSchema,
+		clientPostPayloadSchema,
+	]);
+}
+
+export const clientInboundMessageSchema = createClientInboundMessageSchema();
 
 export type ClientInboundMessage = z.infer<typeof clientInboundMessageSchema>;
 

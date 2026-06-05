@@ -386,7 +386,11 @@ describe("createChatServer reactions", () => {
 			}),
 		);
 		const errRaw = await nextText(ws);
-		expect(JSON.parse(errRaw)).toMatchObject({ type: "error" });
+		expect(JSON.parse(errRaw)).toMatchObject({
+			type: "error",
+			message:
+				"このリアクション絵文字はサーバ設定で許可されていません。config.jsonc を変更した場合はサーバを再起動してください。",
+		});
 
 		ws.close();
 	});

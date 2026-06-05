@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { useAppConfig } from "../config/AppConfigContext.js";
 import { type UseChatOptions, useChat } from "../hooks/use-chat.js";
 import {
 	SIDEBAR_TRANSITION_CLASS,
@@ -22,6 +23,7 @@ type ChatAppProps = {
 
 /** Slack 風レイアウトのメイン画面（SRS-UI-001） */
 export function ChatApp({ chatOptions }: ChatAppProps = {}) {
+	const appConfig = useAppConfig();
 	const {
 		posts,
 		reactionsByPostId,
@@ -36,7 +38,10 @@ export function ChatApp({ chatOptions }: ChatAppProps = {}) {
 		commitDisplayName,
 		sendMessage,
 		clearSendError,
-	} = useChat(chatOptions ?? {});
+	} = useChat({
+		reactionEmojis: appConfig.reactions.emojis,
+		...chatOptions,
+	});
 
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -106,6 +111,7 @@ export function ChatApp({ chatOptions }: ChatAppProps = {}) {
 					<PostList
 						posts={posts}
 						currentDisplayName={displayName}
+						reactionEmojis={appConfig.reactions.emojis}
 						reactionsByPostId={reactionsByPostId}
 						myReactionsByPostId={myReactionsByPostId}
 						onToggleReaction={toggleReaction}

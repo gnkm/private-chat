@@ -8,16 +8,17 @@ import {
 	type Participant,
 	type ReactionEmoji,
 	type ReactionRoster,
+	type ReactionSchemas,
 	type ServerBroadcastPost,
 	type ServerParticipantsFrame,
 	type ServerReactionsFrame,
-	clientInboundMessageSchema,
+	createClientInboundMessageSchema,
+	createReactionSchemas,
 	isReactionMessage,
 	isSetDisplayNameMessage,
 	reactionCountsFromRoster,
 	serverBroadcastPostSchema,
 	serverParticipantsFrameSchema,
-	serverReactionsFrameSchema,
 	toggleReactionOnRoster,
 } from "@private-chat/shared";
 
@@ -26,6 +27,8 @@ import { mountStaticSpa } from "./static-files.js";
 export type CreateChatServerOptions = {
 	/** 本番ビルド済みフロント（`apps/web/dist` 等）のディレクトリ */
 	staticDir?: string;
+	/** `config.jsonc` の `reactions.emojis`（未指定時はデフォルト 4 種） */
+	reactionEmojis?: readonly string[];
 };
 
 /** WebSocket パス（同一オリジンからの接続先） */
@@ -33,6 +36,8 @@ export const WS_PATH = "/ws";
 
 /** Close ハンドシェイクが完了しない接続を `terminate` するまでの待機（ミリ秒） */
 const WS_CLOSE_GRACE_MS = 5_000;
+const UNSUPPORTED_REACTION_EMOJI_ERROR =
+	"このリアクション絵文字はサーバ設定で許可されていません。config.jsonc を変更した場合はサーバを再起動してください。";
 
 export type ChatServer = {
 	readonly httpServer: http.Server;
@@ -95,6 +100,14 @@ function scheduleForceTerminate(clients: WebSocket[]): () => void {
 export function createChatServer(
 	options: CreateChatServerOptions = {},
 ): ChatServer {
+	const reactionSchemas: ReactionSchemas = createReactionSchemas(
+		options.reactionEmojis,
+	);
+	const clientInboundMessageSchema =
+		createClientInboundMessageSchema(reactionSchemas);
+	const { serverReactionsFrameSchema } = reactionSchemas;
+	const allowedReactionEmojis = reactionSchemas.allowedEmojis;
+
 	const app = express();
 	app.get("/health", (_req, res) => {
 		res.status(200).json({ ok: true });
@@ -150,7 +163,7 @@ export function createChatServer(
 		const frame: ServerReactionsFrame = {
 			type: "reactions",
 			postId,
-			reactions: reactionCountsFromRoster(rosterForPost),
+			reactions: reactionCountsFromRoster(rosterForPost, allowedReactionEmojis),
 		};
 		const validated = serverReactionsFrameSchema.safeParse(frame);
 		if (!validated.success) {
@@ -244,6 +257,13 @@ export function createChatServer(
 
 		const result = clientInboundMessageSchema.safeParse(parsed);
 		if (!result.success) {
+			if (
+				isReactionMessage(parsed) &&
+				!reactionSchemas.reactionEmojiSchema.safeParse(parsed.emoji).success
+			) {
+				sendWsError(ws, UNSUPPORTED_REACTION_EMOJI_ERROR);
+				return;
+			}
 			const message = result.error.issues.map((i) => i.message).join("; ");
 			sendWsError(ws, message);
 			return;

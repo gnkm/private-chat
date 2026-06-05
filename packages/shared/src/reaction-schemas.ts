@@ -1,45 +1,110 @@
 import { z } from "zod";
 
-/** Slack 風リアクションで利用可能な絵文字（固定 4 種） */
-export const REACTION_EMOJIS = ["👍", "🙏", "👀", "✨"] as const;
+import {
+	DEFAULT_REACTION_EMOJIS,
+	REACTION_EMOJIS,
+	normalizeReactionEmojis,
+} from "./reaction-config.js";
 
-export type ReactionEmoji = (typeof REACTION_EMOJIS)[number];
+export { DEFAULT_REACTION_EMOJIS, REACTION_EMOJIS };
 
-export const reactionEmojiSchema = z.enum(REACTION_EMOJIS);
+/** 設定で許可されたリアクション絵文字（実行時に決まる） */
+export type ReactionEmoji = string;
 
-export const reactionCountSchema = z
-	.object({
-		emoji: reactionEmojiSchema,
-		count: z.number().int().nonnegative(),
-	})
-	.strict();
+export type ReactionCount = {
+	emoji: ReactionEmoji;
+	count: number;
+};
 
-export type ReactionCount = z.infer<typeof reactionCountSchema>;
+export type ClientReactionPayload = {
+	type: "reaction";
+	postId: string;
+	emoji: ReactionEmoji;
+	displayName: string;
+};
 
-/** クライアント → サーバ（リアクションのトグル） */
-export const clientReactionPayloadSchema = z
-	.object({
-		type: z.literal("reaction"),
-		postId: z.string().min(1),
-		emoji: reactionEmojiSchema,
-		displayName: z.string(),
-	})
-	.strict();
-
-export type ClientReactionPayload = z.infer<typeof clientReactionPayloadSchema>;
-
-/** サーバ → クライアント（投稿ごとのリアクション集計） */
-export const serverReactionsFrameSchema = z
-	.object({
-		type: z.literal("reactions"),
-		postId: z.string().min(1),
-		reactions: z.array(reactionCountSchema),
-	})
-	.strict();
-
-export type ServerReactionsFrame = z.infer<typeof serverReactionsFrameSchema>;
+export type ServerReactionsFrame = {
+	type: "reactions";
+	postId: string;
+	reactions: ReactionCount[];
+};
 
 export type ReactionRoster = Map<ReactionEmoji, Set<string>>;
+
+export type ReactionSchemas = {
+	readonly allowedEmojis: readonly string[];
+	reactionEmojiSchema: z.ZodEnum<[string, ...string[]]>;
+	reactionCountSchema: z.ZodObject<{
+		emoji: z.ZodEnum<[string, ...string[]]>;
+		count: z.ZodNumber;
+	}>;
+	clientReactionPayloadSchema: z.ZodObject<{
+		type: z.ZodLiteral<"reaction">;
+		postId: z.ZodString;
+		emoji: z.ZodEnum<[string, ...string[]]>;
+		displayName: z.ZodString;
+	}>;
+	serverReactionsFrameSchema: z.ZodObject<{
+		type: z.ZodLiteral<"reactions">;
+		postId: z.ZodString;
+		reactions: z.ZodArray<
+			z.ZodObject<{
+				emoji: z.ZodEnum<[string, ...string[]]>;
+				count: z.ZodNumber;
+			}>
+		>;
+	}>;
+};
+
+export function createReactionSchemas(
+	emojis: readonly string[] = DEFAULT_REACTION_EMOJIS,
+): ReactionSchemas {
+	const allowedEmojis = normalizeReactionEmojis(emojis);
+	const tuple = allowedEmojis as [string, ...string[]];
+	const reactionEmojiSchema = z.enum(tuple);
+
+	const reactionCountSchema = z
+		.object({
+			emoji: reactionEmojiSchema,
+			count: z.number().int().nonnegative(),
+		})
+		.strict();
+
+	const clientReactionPayloadSchema = z
+		.object({
+			type: z.literal("reaction"),
+			postId: z.string().min(1),
+			emoji: reactionEmojiSchema,
+			displayName: z.string(),
+		})
+		.strict();
+
+	const serverReactionsFrameSchema = z
+		.object({
+			type: z.literal("reactions"),
+			postId: z.string().min(1),
+			reactions: z.array(reactionCountSchema),
+		})
+		.strict();
+
+	return {
+		allowedEmojis,
+		reactionEmojiSchema,
+		reactionCountSchema,
+		clientReactionPayloadSchema,
+		serverReactionsFrameSchema,
+	};
+}
+
+const defaultReactionSchemas = createReactionSchemas();
+
+export const {
+	allowedEmojis: DEFAULT_ALLOWED_REACTION_EMOJIS,
+	reactionEmojiSchema,
+	reactionCountSchema,
+	clientReactionPayloadSchema,
+	serverReactionsFrameSchema,
+} = defaultReactionSchemas;
 
 export function toggleReactionOnRoster(
 	roster: ReactionRoster,
@@ -63,9 +128,10 @@ export function toggleReactionOnRoster(
 
 export function reactionCountsFromRoster(
 	roster: ReactionRoster,
+	allowedEmojis: readonly string[] = defaultReactionSchemas.allowedEmojis,
 ): ReactionCount[] {
 	const counts: ReactionCount[] = [];
-	for (const emoji of REACTION_EMOJIS) {
+	for (const emoji of allowedEmojis) {
 		const size = roster.get(emoji)?.size ?? 0;
 		if (size > 0) {
 			counts.push({ emoji, count: size });
