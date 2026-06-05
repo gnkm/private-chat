@@ -56,16 +56,11 @@ export type ReactionSchemas = {
 	}>;
 };
 
-function toEnumTuple(emojis: readonly string[]): [string, ...string[]] {
-	const normalized = normalizeReactionEmojis(emojis);
-	return normalized as [string, ...string[]];
-}
-
 export function createReactionSchemas(
 	emojis: readonly string[] = DEFAULT_REACTION_EMOJIS,
 ): ReactionSchemas {
 	const allowedEmojis = normalizeReactionEmojis(emojis);
-	const tuple = toEnumTuple(allowedEmojis);
+	const tuple = allowedEmojis as [string, ...string[]];
 	const reactionEmojiSchema = z.enum(tuple);
 
 	const reactionCountSchema = z
