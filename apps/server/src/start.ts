@@ -12,8 +12,8 @@ const defaultStaticDir = path.resolve(
 );
 const staticDir = resolveStaticDirForStart({
 	defaultStaticDir,
-	envStaticDir: process.env.STATIC_DIR,
-	nodeEnv: process.env.NODE_ENV,
+	...(process.env.STATIC_DIR ? { envStaticDir: process.env.STATIC_DIR } : {}),
+	...(process.env.NODE_ENV ? { nodeEnv: process.env.NODE_ENV } : {}),
 });
 
 let port: number;
