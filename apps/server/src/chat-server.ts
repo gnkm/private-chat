@@ -36,6 +36,8 @@ export const WS_PATH = "/ws";
 
 /** Close ハンドシェイクが完了しない接続を `terminate` するまでの待機（ミリ秒） */
 const WS_CLOSE_GRACE_MS = 5_000;
+const UNSUPPORTED_REACTION_EMOJI_ERROR =
+	"このリアクション絵文字はサーバ設定で許可されていません。config.jsonc を変更した場合はサーバを再起動してください。";
 
 export type ChatServer = {
 	readonly httpServer: http.Server;
@@ -255,6 +257,13 @@ export function createChatServer(
 
 		const result = clientInboundMessageSchema.safeParse(parsed);
 		if (!result.success) {
+			if (
+				isReactionMessage(parsed) &&
+				!reactionSchemas.reactionEmojiSchema.safeParse(parsed.emoji).success
+			) {
+				sendWsError(ws, UNSUPPORTED_REACTION_EMOJI_ERROR);
+				return;
+			}
 			const message = result.error.issues.map((i) => i.message).join("; ");
 			sendWsError(ws, message);
 			return;

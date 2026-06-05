@@ -10,9 +10,11 @@ const defaultStaticDir = path.resolve(
 	path.dirname(fileURLToPath(import.meta.url)),
 	"../../web/dist",
 );
-const staticDir = resolveStaticDirForStart(
-	process.env.STATIC_DIR ?? defaultStaticDir,
-);
+const staticDir = resolveStaticDirForStart({
+	defaultStaticDir,
+	envStaticDir: process.env.STATIC_DIR,
+	nodeEnv: process.env.NODE_ENV,
+});
 
 let port: number;
 try {
