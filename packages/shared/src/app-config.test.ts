@@ -25,6 +25,17 @@ describe("parseAppConfig", () => {
 		});
 	});
 
+	it("ignores multi-code-point emoji sequences", () => {
+		expect(
+			parseAppConfig({
+				reactions: { emojis: ["👍🏽", "🇺🇸", "👍"] },
+			}),
+		).toEqual({
+			shiki: { ...DEFAULT_APP_CONFIG.shiki },
+			reactions: { emojis: ["👍"] },
+		});
+	});
+
 	it("falls back to defaults when reactions list is empty after normalization", () => {
 		expect(parseAppConfig({ reactions: { emojis: ["ab", ""] } })).toEqual(
 			DEFAULT_APP_CONFIG,

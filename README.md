@@ -76,7 +76,7 @@ JSONC 形式（`//` コメント可）で、ライト／ダークそれぞれの
 ```
 
 - Shiki のテーマ一覧: [Shiki Themes](https://shiki.style/themes)
-- `reactions.emojis` は **1 文字の絵文字** のみ（複数文字は無視）。重複は除かれ、最大 32 個まで
+- `reactions.emojis` は **1 Unicode コードポイント** の絵文字のみ（`👍🏽`・国旗・ZWJ 連結など複数コードポイントは無視）。重複は除かれ、最大 32 個まで
 
 ### 反映方法
 
